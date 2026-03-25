@@ -1,0 +1,27 @@
+{
+  "status": "completed",
+  "project": "todo-app-test20",
+  "summary": {
+    "tables": 0,
+    "indexes": 0,
+    "migrations": 1,
+    "seeders": 0
+  },
+  "tables_info": [],
+  "for_backend": {
+    "schema": {
+      "tables": []
+    },
+    "full_sql": "",
+    "tables": []
+  },
+  "files_generated": [
+    "outputs/schema.json",
+    "outputs/migrations.json",
+    "outputs/indexes.json",
+    "outputs/seeders.json",
+    "outputs/test_results.json",
+    "outputs/db_report.json",
+    "outputs/todo_app.db"
+  ]
+}

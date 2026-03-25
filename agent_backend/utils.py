@@ -27,7 +27,7 @@ llm = ChatDeepSeek(
 def call_mistral():
     """Use Groq OpenAI GPT-OSS-20B for fast code generation (no rate limits)"""
     return ChatGroq(
-        model="openai/gpt-oss-20b",
+        model="openai/gpt-oss-120b",
         temperature=0.3,
         max_tokens=8192,
         # GROQ_API_KEY loaded from .env automatically
@@ -212,12 +212,48 @@ def parse_plan(plan: dict, db_schema: dict = None, project_name: str = None) -> 
             "context": {"tech_stack": tech_stack}
         },
         "app/schemas/task.py": {
-            "description": "Pydantic v2 schemas for request/response validation ONLY. DO NOT import uuid or UUID. Generate EXACTLY these 3 classes: (1) TaskCreate(title: str, description: str, priority: str, status: str), (2) TaskRead(id: int, title: str, description: str, priority: str, status: str, created_at: str, updated_at: str, user_id: int), (3) TaskUpdate(title: str = None, description: str = None, priority: str = None, status: str = None). Generate EXACTLY these 2 enums: Priority(HIGH, MEDIUM, LOW), Status(TODO, IN_PROGRESS, DONE). NO other classes, NO UUID, NO DateTime. All types are basic Python types (str, int, float).",
+            "description": "Pydantic v2 schemas for request/response validation ONLY. DO NOT import uuid or UUID. Generate EXACTLY these 3 classes: (1) TaskCreate(title: str REQUIRED, description: str REQUIRED, priority: str = 'medium', status: str = 'todo'), (2) TaskRead(id: int, title: str, description: str, priority: str, status: str, created_at: str, updated_at: str, user_id: int), (3) TaskUpdate(title: str = None, description: str = None, priority: str = None, status: str = None). Generate EXACTLY these 2 enums: Priority(high, medium, low), Status(todo, in_progress, done). Use string enums with lowercase values. NO other classes, NO UUID, NO DateTime. All types are basic Python types (str, int, float).",
             "context": {"entity": _find_entity(entities, "Task")}
         },
         "app/main.py": {
-            "description": "FastAPI HTTP PROXY backend. Imports: from fastapi import FastAPI, HTTPException, status; from httpx import AsyncClient; from app.schemas.task import TaskCreate, TaskRead, TaskUpdate, Priority, Status; from app.core.security import hash_password, verify_password; from app.core.config import Settings. Create Settings instance. Create FastAPI app. Define exactly 5 endpoints: GET /tasks (list all), POST /tasks (create), GET /tasks/{task_id} (detail), PUT /tasks/{task_id} (update), DELETE /tasks/{task_id} (delete). CRITICAL: Use the EXACT table name from db_tables (provided in context). Call http://localhost:8003/databases/{project_name}/data/{table_name} where project_name and table_name come from context. Each endpoint: (1) Extract parameters, (2) Call remote API with exact table name from db_tables, (3) Convert enum values (HIGH ↔ high). NO SQLAlchemy. Run on 0.0.0.0:8000.",
-            "context": {"endpoints": plan.get("api_endpoints", []), "tech_stack": tech_stack, "project_name": project_name, "db_tables": list(db_schema.keys())}
+            "description": """FastAPI HTTP PROXY backend. Imports: from fastapi import FastAPI, HTTPException, status; from httpx import AsyncClient; from app.schemas.task import TaskCreate, TaskRead, TaskUpdate, Priority, Status; from app.core.security import hash_password, verify_password; from app.core.config import Settings.
+
+Create Settings instance and FastAPI app. Define exactly 5 endpoints:
+
+1. GET /tasks
+   Call http://localhost:8003/databases/{project_name}/data/{task_table_name}
+   API returns: {"rows": [{...task dict...}, {...}], "count": N, "total_count": M, ...}
+   Extract list from response.json()["rows"]
+   For each row dict, pass to TaskRead(**row_dict) to convert
+   Return: List[TaskRead]
+
+2. POST /tasks(task: TaskCreate)
+   Convert task to dict: task_data = task.dict()
+   Remove None values: task_data = {k: v for k, v in task_data.items() if v is not None}
+   Call POST to http://localhost:8003/databases/{project_name}/data/{task_table_name} with task_data
+   API returns: single dict {task data}
+   Return: TaskRead(**response.json())
+
+3. GET /tasks/{task_id}
+   Call http://localhost:8003/databases/{project_name}/data/{task_table_name}/{task_id}
+   API returns: single dict {task data}
+   Return: TaskRead(**response.json())
+
+4. PUT /tasks/{task_id}(task: TaskUpdate)
+   Convert task to dict excluding unset fields: task_data = task.dict(exclude_unset=True)
+   Remove None values: task_data = {k: v for k, v in task_data.items() if v is not None}
+   Call PUT to http://localhost:8003/databases/{project_name}/data/{task_table_name}/{task_id}
+   API returns: single dict {task data}
+   Return: TaskRead(**response.json())
+
+5. DELETE /tasks/{task_id}
+   Call DELETE to http://localhost:8003/databases/{project_name}/data/{task_table_name}/{task_id}
+   Return: status_code 204 (no content)
+
+Use helper function _build_url(task_id=None) to construct URLs.
+Use helper function _convert_item(item: dict) to convert any dict to TaskRead.
+NO enum conversion needed - TaskRead fields are strings.""",
+            "context": {"endpoints": plan.get("api_endpoints", []), "tech_stack": tech_stack, "project_name": project_name, "db_tables": list(db_schema.keys()), "task_table_name": next((t for t in db_schema.keys() if t.lower() in ["task", "tasks"]), "Task")}
         },
         "requirements.txt": {
             "description": "Exact required packages ONLY: fastapi==0.104.1, uvicorn[standard]==0.24.0, httpx==0.25.0, pydantic==2.11.0, pydantic-settings==2.11.0, python-dotenv==1.0.0, python-multipart==0.0.6, passlib[bcrypt]==1.7.4. NO sqlalchemy, NO asyncpg, NO database packages. One package per line. NO comments.",

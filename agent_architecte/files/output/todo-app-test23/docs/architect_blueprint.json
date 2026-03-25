@@ -1,0 +1,134 @@
+{
+  "project": {
+    "name": "todo-app-test23",
+    "description": "Application full-stack de gestion de tâches avec authentification JWT, filtres avancés et pipeline CI/CD.",
+    "complexity": "medium"
+  },
+  "modules": [
+    "auth",
+    "tasks",
+    "dashboard"
+  ],
+  "user_journeys": [
+    {
+      "name": "Inscription et première connexion",
+      "steps": [
+        "L'utilisateur accède à la page /register et remplit le formulaire.",
+        "Le frontend envoie les données au backend pour création du compte.",
+        "Le backend renvoie un token JWT, stocké dans localStorage.",
+        "L'utilisateur est redirigé vers le dashboard."
+      ]
+    },
+    {
+      "name": "Création et filtrage de tâches",
+      "steps": [
+        "L'utilisateur clique sur 'Nouvelle tâche' et remplit le formulaire TaskForm.",
+        "Le frontend envoie la tâche au backend via POST /tasks.",
+        "La tâche est affichée dans TaskList.",
+        "L'utilisateur applique des filtres (ex: status='todo') via TaskFilters.",
+        "Le frontend met à jour l'URL avec les query parameters et recharge les tâches."
+      ]
+    },
+    {
+      "name": "Déploiement via CI/CD",
+      "steps": [
+        "Un développeur pousse du code sur la branche main.",
+        "GitHub Actions déclenche le pipeline: tests -> build -> déploiement.",
+        "Le backend est déployé sur Render, le frontend sur GitHub Pages."
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id",
+        "email",
+        "hashed_password",
+        "created_at"
+      ],
+      "relations": []
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "created_at",
+        "updated_at",
+        "user_id"
+      ],
+      "relations": [
+        "Many-to-One avec User (via user_id)"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "description": "Inscription utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Connexion utilisateur (JWT)",
+      "auth_required": false
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "description": "Liste des tâches avec filtres (status, priority)",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "description": "Créer une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{id}",
+      "description": "Modifier une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{id}",
+      "description": "Supprimer une tâche",
+      "auth_required": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Vite + Tailwind CSS",
+    "backend": "FastAPI (Python 3.10) + SQLAlchemy",
+    "database": "PostgreSQL 15",
+    "auth": "JWT (python-jose + passlib bcrypt)",
+    "cache": "none",
+    "message_broker": "none",
+    "container": "Docker + Docker Compose",
+    "cloud": "GitHub Pages (frontend) + Render/Heroku (backend)"
+  },
+  "dev_instructions": {
+    "database": "Oumeyma, crée les modèles SQLAlchemy suivants:\n1. User: id (Integer, PK), email (String, unique), hashed_password (String), created_at (DateTime).\n2. Task: id (Integer, PK), title (String), description (Text, nullable), status (Enum: 'todo', 'in_progress', 'done'), priority (Enum: 'low', 'medium', 'high'), created_at (DateTime), updated_at (DateTime), user_id (Integer, FK -> User.id).\n\n- Utilise Alembic pour les migrations. Exemple de migration:\n  python\n  def upgrade():\n      op.create_table(\n          'users',\n          sa.Column('id', sa.Integer, primary_key=True),\n          sa.Column('email', sa.String(255), unique=True, nullable=False),\n          sa.Column('hashed_password', sa.String(255), nullable=False),\n          sa.Column('created_at', sa.DateTime, server_default=sa.func.now())\n      )\n  \n- Ajoute des indexes sur user_id (Task) et email (User).\n- Implémente les relations avec back_populates pour le chargement eager:\n  python\n  class User(Base):\n      __tablename__ = 'users'\n      tasks = relationship('Task', back_populates='owner')\n  ",
+    "backend": "Akram, implémente les endpoints suivants:\n\n1. **Auth Router (/auth)**:\n   - POST /register: Valide les données (email valide, password >= 8 chars), hache le mot de passe avec bcrypt, crée l'utilisateur en base, et renvoie un token JWT.\n   - POST /login: Vérifie les identifiants, génère un token JWT avec une durée de 30 minutes.\n\n2. **Tasks Router (/tasks)**:\n   - GET /tasks: Récupère les tâches de l'utilisateur authentifié. Accepte des query parameters pour les filtres (status, priority). Exemple: `/tasks?status=todo&priority=high`.\n   - POST /tasks: Crée une tâche pour l'utilisateur authentifié. Valide les champs (title obligatoire, status/priority par défaut à 'todo'/'medium').\n   - PUT /tasks/{id}: Met à jour une tâche. Vérifie que l'utilisateur est le propriétaire de la tâche.\n   - DELETE /tasks/{id}: Supprime une tâche. Vérifie que l'utilisateur est le propriétaire.\n\n3. **Structure du code**:\n   - routers/auth.py: Routes d'authentification.\n   - routers/tasks.py: Routes des tâches.\n   - services/users.py: Logique métier pour les utilisateurs (ex: create_user, authenticate_user).\n   - services/tasks.py: Logique métier pour les tâches (ex: get_tasks, create_task).\n   - models.py: Modèles SQLAlchemy (User, Task).\n   - database.py: Configuration de la session SQLAlchemy.\n   - utils/jwt_utils.py: Fonctions pour générer/valider les tokens JWT.\n   - utils/security.py: Fonctions pour hacher/vérifier les mots de passe (bcrypt).\n\n4. **Authentification JWT**:\n   - Utilise FastAPI's Depends pour protéger les routes:\n     python\n     from fastapi import Depends, HTTPException\n     from .jwt_utils import get_current_user\n     \n     @router.get('/tasks')\n     async def get_tasks(current_user: User = Depends(get_current_user)):\n         return current_user.tasks\n     \n   - La fonction get_current_user décode le token JWT et récupère l'utilisateur depuis la base de données.\n\n5. **Tests**:\n   - Ajoute des tests unitaires pour les services (ex: test_create_task) et les routes (ex: test_get_tasks). Utilise pytest.\n   - Exemple de test:\n     python\n     def test_create_task(client, auth_headers):\n         response = client.post('/tasks', json={'title': 'Test task'}, headers=auth_headers)\n         assert response.status_code == 200\n         assert response.json()['title'] == 'Test task'\n     ",
+    "frontend": "Mactar, crée les pages et composants suivants:\n\n1. **Pages**:\n   - LoginPage (/login): Formulaire de connexion avec champs email/password. Redirige vers / après connexion réussie.\n   - RegisterPage (/register): Formulaire d'inscription avec validation (email valide, password >= 8 chars). Redirige vers /login après inscription.\n   - DashboardPage (/): Page principale avec TaskList, TaskFilters, et TaskForm (modale).\n\n2. **Composants**:\n   - TaskList: Affiche les tâches sous forme de tableau avec colonnes pour title, status, priority, et actions (éditer/supprimer). Utilise un état local pour le tri (ex: par date de création).\n   - TaskFilters: Dropdowns pour filtrer par status et priority. Émet des événements pour mettre à jour les query parameters de l'URL (ex: `?status=todo`).\n   - TaskForm: Modale avec formulaire pour créer/éditer une tâche. Champs: title (required), description, status, priority. Valide les données avant envoi au backend.\n   - Navbar: Barre de navigation avec lien vers le dashboard et bouton de déconnexion (supprime le token JWT et redirige vers /login).\n\n3. **State Management**:\n   - AuthContext: Gère l'état d'authentification (token JWT, utilisateur). Fournit des fonctions pour login/logout.\n   - TasksContext: Gère l'état des tâches (liste, filtres). Fournit des fonctions pour charger les tâches depuis le backend.\n   - Exemple d'utilisation:\n     typescript\n     const { tasks, loadTasks } = useTasksContext();\n     const { token } = useAuthContext();\n     \n     useEffect(() => {\n         if (token) loadTasks();\n     }, [token]);\n     \n\n4. **Routing**:\n   - Utilise React Router v6. Protège les routes privées (ex: /) avec un wrapper:\n     typescript\n     const PrivateRoute = ({ children }) => {\n         const { token } = useAuthContext();\n         return token ? children : <Navigate to='/login' />;\n     };\n     \n   - Synchronise les query parameters avec l'état des filtres:\n     typescript\n     const [searchParams, setSearchParams] = useSearchParams();\n     const status = searchParams.get('status') || 'all';\n     \n\n5. **Styling**:\n   - Utilise Tailwind CSS pour les styles. Exemple:\n     html\n     <button className='bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded'>\n         Login\n     </button>\n     \n   - Ajoute des classes conditionnelles pour les états (ex: tâche terminée = texte barré).\n\n6. **Tests**:\n   - Ajoute des tests unitaires pour les composants critiques (ex: TaskForm, TaskFilters). Utilise Vitest + React Testing Library.\n   - Exemple de test:\n     typescript\n     test('TaskForm validates required fields', async () => {\n         render(<TaskForm />);\n         fireEvent.click(screen.getByText('Create'));\n         expect(await screen.findByText('Title is required')).toBeInTheDocument();\n     });\n     "
+  },
+  "constraints": [
+    "Le token JWT doit expirer après 30 minutes.",
+    "Les mots de passe doivent être hachés avec bcrypt (coût 12).",
+    "Les tâches doivent être associées à un utilisateur (contrôle d'accès obligatoire).",
+    "Le frontend doit être une SPA avec React Router pour la navigation.",
+    "Le pipeline CI/CD doit inclure des tests unitaires avant le déploiement."
+  ],
+  "estimated_files": {
+    "database": 3,
+    "backend": 12,
+    "frontend": 15
+  }
+}

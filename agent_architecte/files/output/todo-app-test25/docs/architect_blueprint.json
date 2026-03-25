@@ -1,0 +1,256 @@
+{
+  "project": {
+    "name": "todo-app-test25",
+    "description": "Application full-stack de gestion de tâches avec authentification JWT, filtres avancés et pipeline CI/CD.",
+    "complexity": "medium"
+  },
+  "modules": [
+    "authentication",
+    "task_management",
+    "dashboard",
+    "ci_cd"
+  ],
+  "user_journeys": [
+    {
+      "name": "Inscription et première connexion",
+      "steps": [
+        "L'utilisateur accède à la page /register et remplit le formulaire.",
+        "Le frontend envoie les données au backend pour création du compte.",
+        "Le backend retourne un JWT, stocké par le frontend.",
+        "Redirection vers le dashboard (/dashboard)."
+      ]
+    },
+    {
+      "name": "Création et filtrage de tâches",
+      "steps": [
+        "L'utilisateur clique sur 'Nouvelle tâche' et remplit le formulaire.",
+        "Le frontend envoie les données au backend pour création.",
+        "L'utilisateur applique des filtres (ex: statut 'todo', priorité 'high').",
+        "Le frontend affiche les tâches filtrées."
+      ]
+    },
+    {
+      "name": "Modification et suppression d'une tâche",
+      "steps": [
+        "L'utilisateur clique sur une tâche pour la modifier.",
+        "Le frontend pré-remplit le formulaire avec les données existantes.",
+        "L'utilisateur met à jour les champs et soumet le formulaire.",
+        "Le frontend envoie les données au backend pour mise à jour.",
+        "Pour la suppression, l'utilisateur clique sur 'Supprimer' et confirme."
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id (Integer, Primary Key)",
+        "email (String, Unique)",
+        "hashed_password (String)",
+        "full_name (String, nullable)",
+        "is_active (Boolean)",
+        "created_at (DateTime)"
+      ],
+      "relations": [
+        "One-to-Many avec Task (user_id)"
+      ]
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id (Integer, Primary Key)",
+        "title (String)",
+        "description (Text, nullable)",
+        "status (Enum: todo|in_progress|done)",
+        "priority (Enum: low|medium|high)",
+        "due_date (Date, nullable)",
+        "user_id (Integer, ForeignKey)",
+        "created_at (DateTime)",
+        "updated_at (DateTime)"
+      ],
+      "relations": [
+        "Many-to-One avec User (user_id)"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "description": "Inscription utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Connexion utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "description": "Liste des tâches avec filtres",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "description": "Créer une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{task_id}",
+      "description": "Mettre à jour une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{task_id}",
+      "description": "Supprimer une tâche",
+      "auth_required": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Vite + Tailwind CSS + React Router v6",
+    "backend": "FastAPI (Python 3.10) + SQLAlchemy + Pydantic",
+    "database": "PostgreSQL 15 + Alembic",
+    "auth": "JWT avec python-jose + passlib (bcrypt)",
+    "cache": "none",
+    "message_broker": "none",
+    "container": "Docker + Docker Compose",
+    "cloud": "Déploiement local pour le développement, GitHub Pages (frontend) + Render/Heroku (backend) en production"
+  },
+  "dev_instructions": {
+    "database": {
+      "steps": [
+        "1. Créer les modèles SQLAlchemy pour `User` et `Task` avec les champs spécifiés dans ---TECHSTACK---.",
+        "2. Configurer la relation Many-to-One entre `User` et `Task` (User.has_many : Task).",
+        "3. Ajouter des indexes sur les champs `user_id`, `status`, et `priority` dans la table `Task`.",
+        "4. Initialiser Alembic pour les migrations : `alembic init migrations`.",
+        "5. Créer une migration initiale avec `alembic revision --autogenerate -m 'Initial migration'`.",
+        "6. Appliquer la migration avec `alembic upgrade head`.",
+        "7. Créer un script `seed.py` pour insérer des données de test (ex: 1 utilisateur avec 5 tâches).",
+        "8. Configurer la connexion à PostgreSQL via les variables d'environnement (ex: `DATABASE_URL=postgresql://user:password@db:5432/todoapp`)."
+      ],
+      "files": [
+        "models/user.py",
+        "models/task.py",
+        "database/session.py",
+        "migrations/env.py",
+        "seed.py"
+      ]
+    },
+    "backend": {
+      "steps": [
+        "1. Structurer le projet comme suit :",
+        "   - `routers/` : `auth.py`, `tasks.py`",
+        "   - `services/` : `users.py`, `tasks.py`",
+        "   - `models/` : `user.py`, `task.py` (lien avec SQLAlchemy)",
+        "   - `schemas/` : `user.py`, `task.py` (Pydantic models)",
+        "   - `config.py` : Configuration Pydantic pour les variables d'environnement.",
+        "2. Implémenter l'authentification JWT :",
+        "   - Créer un service `auth_service.py` pour générer/valider les tokens.",
+        "   - Configurer FastAPI pour utiliser JWT avec `OAuth2PasswordBearer`.",
+        "   - Ajouter une dépendance `get_current_user` pour protéger les routes.",
+        "3. Implémenter les endpoints :",
+        "   - `/auth/register` : Valider les données, hacher le mot de passe, créer l'utilisateur.",
+        "   - `/auth/login` : Vérifier les identifiants, générer un JWT.",
+        "   - `/tasks` (GET) : Récupérer les tâches avec filtres (status, priority).",
+        "   - `/tasks` (POST) : Créer une tâche avec validation des données.",
+        "   - `/tasks/{task_id}` (PUT/DELETE) : Vérifier que l'utilisateur possède la tâche avant modification/suppression.",
+        "4. Configurer CORS pour autoriser le frontend (ex: `origins = ['http://localhost:3000']`).",
+        "5. Ajouter des tests unitaires avec pytest :",
+        "   - Tests pour les services (`users_service`, `tasks_service`).",
+        "   - Tests pour les endpoints (avec `TestClient` de FastAPI).",
+        "6. Configurer les logs avec `logging` (niveau INFO pour la production)."
+      ],
+      "files": [
+        "routers/auth.py",
+        "routers/tasks.py",
+        "services/users.py",
+        "services/tasks.py",
+        "services/auth_service.py",
+        "models/user.py",
+        "models/task.py",
+        "schemas/user.py",
+        "schemas/task.py",
+        "config.py",
+        "main.py",
+        "tests/test_auth.py",
+        "tests/test_tasks.py"
+      ]
+    },
+    "frontend": {
+      "steps": [
+        "1. Initialiser le projet avec Vite : `npm create vite@latest todo-app-test25 --template react-ts`.",
+        "2. Installer les dépendances :",
+        "   - `react-router-dom` pour le routing.",
+        "   - `axios` pour les appels API.",
+        "   - `react-hook-form` + `zod` pour les formulaires.",
+        "   - `tailwindcss` pour le styling.",
+        "3. Configurer le routing avec React Router v6 :",
+        "   - Routes publiques : `/login`, `/register`.",
+        "   - Routes protégées : `/dashboard`, `/tasks/new`, `/tasks/:id/edit`.",
+        "   - Utiliser un `AuthProvider` pour gérer le JWT et la redirection.",
+        "4. Créer les composants :",
+        "   - `AuthLayout` : Layout pour les pages d'authentification.",
+        "   - `DashboardLayout` : Layout principal avec sidebar et header.",
+        "   - `TaskList` : Liste des tâches avec filtres et pagination.",
+        "   - `TaskItem` : Composant individuel pour une tâche (affichage + actions).",
+        "   - `TaskForm` : Formulaire pour créer/modifier une tâche (avec validation Zod).",
+        "   - `AuthForm` : Formulaire pour login/register.",
+        "   - `FilterBar` : Barre de filtres pour status et priorité.",
+        "5. Implémenter les services API :",
+        "   - `api/auth.ts` : Appels pour `/auth/register` et `/auth/login`.",
+        "   - `api/tasks.ts` : Appels pour `/tasks` (CRUD + filtres).",
+        "   - Configurer axios avec un intercepteur pour ajouter le JWT aux headers.",
+        "6. Gérer l'état global :",
+        "   - `AuthContext` : Stocker le JWT et l'état de connexion.",
+        "   - `TasksContext` : Stocker les tâches et les filtres (avec `useReducer`).",
+        "7. Ajouter des tests avec Jest + React Testing Library :",
+        "   - Tests pour les composants (`TaskItem`, `TaskForm`).",
+        "   - Tests pour les services API.",
+        "8. Configurer ESLint et Prettier pour le linting et le formatage.",
+        "9. Optimiser les performances :",
+        "   - Code splitting avec `React.lazy`.",
+        "   - Memoization des composants avec `React.memo`."
+      ],
+      "files": [
+        "src/App.tsx",
+        "src/main.tsx",
+        "src/router.tsx",
+        "src/contexts/AuthContext.tsx",
+        "src/contexts/TasksContext.tsx",
+        "src/layouts/AuthLayout.tsx",
+        "src/layouts/DashboardLayout.tsx",
+        "src/components/TaskList.tsx",
+        "src/components/TaskItem.tsx",
+        "src/components/TaskForm.tsx",
+        "src/components/AuthForm.tsx",
+        "src/components/FilterBar.tsx",
+        "src/pages/LoginPage.tsx",
+        "src/pages/RegisterPage.tsx",
+        "src/pages/DashboardPage.tsx",
+        "src/pages/TaskFormPage.tsx",
+        "src/services/api/auth.ts",
+        "src/services/api/tasks.ts",
+        "src/styles/global.css",
+        "src/tests/TaskItem.test.tsx",
+        "src/tests/TaskForm.test.tsx"
+      ]
+    }
+  },
+  "constraints": [
+    "Le JWT doit expirer après 30 minutes d'inactivité.",
+    "Les mots de passe doivent être hachés avec bcrypt (coût 12).",
+    "Les filtres sur les tâches doivent utiliser des indexes PostgreSQL pour des performances optimales.",
+    "Le frontend doit être responsive (mobile-first avec Tailwind CSS).",
+    "Le pipeline CI/CD doit échouer si les tests ne passent pas."
+  ],
+  "estimated_files": {
+    "database": 5,
+    "backend": 12,
+    "frontend": 18
+  }
+}

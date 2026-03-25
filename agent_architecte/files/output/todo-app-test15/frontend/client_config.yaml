@@ -1,0 +1,47 @@
+# ============================================================
+# client_config.yaml — Thème "Midnight Indigo"
+# ============================================================
+
+app:
+  title: "Task Manager — Acme Corp"
+  page_icon: "🗂️"
+  layout: "wide"
+  sidebar_state: "expanded"
+
+branding:
+  logo_url: ""
+  logo_width: 160
+  company_name: "Acme Corp"
+
+theme:
+  primary_color:    "#6366F1"   # Indigo vif  — boutons, liens actifs
+  secondary_color:  "#1E1B4B"   # Navy profond — éléments secondaires
+  accent_color:     "#10B981"   # Émeraude    — succès, badges positifs
+  danger_color:     "#EF4444"   # Rouge vif   — erreurs, suppressions
+  warning_color:    "#F59E0B"   # Ambre       — alertes, priorité haute
+  background_color: "#0F172A"   # Slate 900   — fond général
+  surface_color:    "#1E293B"   # Slate 800   — cartes, sidebar
+  text_primary:     "#F1F5F9"   # Slate 100   — texte principal (clair)
+  text_secondary:   "#94A3B8"   # Slate 400   — texte secondaire
+
+typography:
+  font_family:      "Inter"
+  font_family_code: "JetBrains Mono"
+  base_font_size:   "15px"
+
+components:
+  border_radius: "8px"
+  card_shadow:   "0 4px 24px rgba(0,0,0,0.5)"
+  sidebar_width: "260px"
+
+# ============================================================
+# Mode développement
+# ============================================================
+dev_mode:
+  enabled:          true
+  strategy:         "mock_login"
+  mock_username:    "demo"
+  mock_password:    "demo"
+  mock_token:       "dev-token-00000000"
+  show_dev_banner:  true
+  banner_message:   "MODE DEVELOPPEMENT — authentification simulée"

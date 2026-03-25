@@ -1,0 +1,217 @@
+{
+  "database": {
+    "technology": "PostgreSQL 15",
+    "models": [
+      {
+        "name": "User",
+        "fields": {
+          "id": "Integer (Primary Key)",
+          "email": "String (Unique, 255 chars)",
+          "hashed_password": "String (255 chars)",
+          "full_name": "String (100 chars, nullable)",
+          "is_active": "Boolean (default=True)",
+          "created_at": "DateTime (default=now)"
+        }
+      },
+      {
+        "name": "Task",
+        "fields": {
+          "id": "Integer (Primary Key)",
+          "title": "String (100 chars)",
+          "description": "Text (nullable)",
+          "status": "Enum ('todo', 'in_progress', 'done')",
+          "priority": "Enum ('low', 'medium', 'high')",
+          "due_date": "Date (nullable)",
+          "user_id": "Integer (ForeignKey to User.id)",
+          "created_at": "DateTime (default=now)",
+          "updated_at": "DateTime (default=now, onupdate=now)"
+        },
+        "relations": [
+          "Many-to-One avec User (user_id)"
+        ]
+      }
+    ],
+    "instructions": "1. Cr\u00e9er les mod\u00e8les SQLAlchemy avec les champs sp\u00e9cifi\u00e9s. 2. Configurer les relations (User.has_many : Task). 3. Ajouter des indexes sur user_id, status et priority pour optimiser les filtres. 4. Utiliser Alembic pour les migrations. 5. Pr\u00e9voir un script de seed pour les donn\u00e9es de test."
+  },
+  "backend": {
+    "technology": "FastAPI (Python 3.10)",
+    "endpoints": [
+      {
+        "path": "/auth/register",
+        "method": "POST",
+        "description": "Inscription utilisateur (email, password, full_name)",
+        "auth_required": false,
+        "request_body": {
+          "email": "string",
+          "password": "string",
+          "full_name": "string (optional)"
+        },
+        "response": {
+          "access_token": "string (JWT)",
+          "token_type": "string"
+        }
+      },
+      {
+        "path": "/auth/login",
+        "method": "POST",
+        "description": "Connexion utilisateur (email, password)",
+        "auth_required": false,
+        "request_body": {
+          "email": "string",
+          "password": "string"
+        },
+        "response": {
+          "access_token": "string (JWT)",
+          "token_type": "string"
+        }
+      },
+      {
+        "path": "/tasks",
+        "method": "GET",
+        "description": "Liste des t\u00e2ches avec filtres (status, priority)",
+        "auth_required": true,
+        "query_params": {
+          "status": "string (optional, enum: todo|in_progress|done)",
+          "priority": "string (optional, enum: low|medium|high)"
+        },
+        "response": {
+          "tasks": [
+            {
+              "id": "integer",
+              "title": "string",
+              "status": "string",
+              "priority": "string",
+              "due_date": "string (date)"
+            }
+          ]
+        }
+      },
+      {
+        "path": "/tasks",
+        "method": "POST",
+        "description": "Cr\u00e9er une t\u00e2che",
+        "auth_required": true,
+        "request_body": {
+          "title": "string",
+          "description": "string (optional)",
+          "status": "string (optional, default: todo)",
+          "priority": "string (optional, default: medium)",
+          "due_date": "string (date, optional)"
+        },
+        "response": {
+          "id": "integer",
+          "title": "string",
+          "status": "string"
+        }
+      },
+      {
+        "path": "/tasks/{task_id}",
+        "method": "PUT",
+        "description": "Mettre \u00e0 jour une t\u00e2che",
+        "auth_required": true,
+        "request_body": {
+          "title": "string (optional)",
+          "description": "string (optional)",
+          "status": "string (optional)",
+          "priority": "string (optional)",
+          "due_date": "string (date, optional)"
+        },
+        "response": {
+          "id": "integer",
+          "title": "string",
+          "status": "string"
+        }
+      },
+      {
+        "path": "/tasks/{task_id}",
+        "method": "DELETE",
+        "description": "Supprimer une t\u00e2che",
+        "auth_required": true,
+        "response": {
+          "detail": "string (Task deleted)"
+        }
+      }
+    ],
+    "auth": {
+      "approach": "JWT avec python-jose (jose.jwt) et passlib (bcrypt pour le hachage)",
+      "token_expiration": "30 minutes",
+      "security_scheme": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "instructions": "1. Structurer le projet en routers (auth.py, tasks.py) et services (users.py, tasks.py). 2. Impl\u00e9menter l'authentification JWT avec d\u00e9pendance FastAPI (get_current_user). 3. Valider les donn\u00e9es avec Pydantic. 4. G\u00e9rer les erreurs avec HTTPException. 5. Configurer CORS pour le frontend. 6. Ajouter des tests unitaires avec pytest."
+  },
+  "frontend": {
+    "technology": "React 18 + TypeScript + Vite",
+    "components": [
+      {
+        "name": "AuthLayout",
+        "description": "Layout pour les pages d'authentification (login/register)"
+      },
+      {
+        "name": "DashboardLayout",
+        "description": "Layout principal avec sidebar et header"
+      },
+      {
+        "name": "TaskList",
+        "description": "Liste des t\u00e2ches avec filtres et pagination"
+      },
+      {
+        "name": "TaskItem",
+        "description": "Composant individuel pour une t\u00e2che (affichage + actions)"
+      },
+      {
+        "name": "TaskForm",
+        "description": "Formulaire pour cr\u00e9er/modifier une t\u00e2che"
+      },
+      {
+        "name": "AuthForm",
+        "description": "Formulaire pour login/register"
+      },
+      {
+        "name": "FilterBar",
+        "description": "Barre de filtres pour status et priorit\u00e9"
+      }
+    ],
+    "pages": [
+      {
+        "path": "/login",
+        "component": "AuthPage",
+        "description": "Page de connexion"
+      },
+      {
+        "path": "/register",
+        "component": "AuthPage",
+        "description": "Page d'inscription"
+      },
+      {
+        "path": "/dashboard",
+        "component": "DashboardPage",
+        "description": "Tableau de bord principal (liste des t\u00e2ches)",
+        "protected": true
+      },
+      {
+        "path": "/tasks/new",
+        "component": "TaskFormPage",
+        "description": "Page de cr\u00e9ation de t\u00e2che",
+        "protected": true
+      },
+      {
+        "path": "/tasks/:id/edit",
+        "component": "TaskFormPage",
+        "description": "Page de modification de t\u00e2che",
+        "protected": true
+      }
+    ],
+    "state_management": "React Context + useReducer pour l'auth et les t\u00e2ches",
+    "styling": "Tailwind CSS pour le design syst\u00e8me",
+    "instructions": "1. Configurer le routing avec React Router v6. 2. Cr\u00e9er un contexte d'authentification pour g\u00e9rer le JWT. 3. Impl\u00e9menter un service API (axios) pour les appels au backend. 4. G\u00e9rer les formulaires avec React Hook Form + Zod pour la validation. 5. Ajouter des tests avec Jest + React Testing Library. 6. Configurer ESLint et Prettier pour le linting."
+  },
+  "auth": "JWT avec python-jose + passlib (bcrypt)",
+  "cache": "none",
+  "message_broker": "none",
+  "container": "Docker + Docker Compose (pour PostgreSQL et l'API)",
+  "cloud": "D\u00e9ploiement local pour le d\u00e9veloppement, cible GitHub Pages pour le frontend et un service comme Render/Heroku pour le backend en production"
+}

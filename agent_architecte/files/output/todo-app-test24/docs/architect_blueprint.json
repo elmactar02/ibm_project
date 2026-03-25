@@ -1,0 +1,286 @@
+{
+  "project": {
+    "name": "todo-app-test24",
+    "description": "Application full-stack de gestion de tâches avec authentification JWT et pipeline CI/CD intégrée",
+    "complexity": "medium"
+  },
+  "modules": [
+    "authentication",
+    "task_management",
+    "dashboard",
+    "ci_cd"
+  ],
+  "user_journeys": [
+    {
+      "name": "Inscription et première connexion",
+      "steps": [
+        "L'utilisateur accède à la page d'inscription",
+        "Remplit le formulaire avec email et mot de passe",
+        "Soumet le formulaire et est redirigé vers la page de connexion",
+        "Se connecte avec ses identifiants et accède au tableau de bord"
+      ]
+    },
+    {
+      "name": "Gestion des tâches",
+      "steps": [
+        "L'utilisateur connecté voit sa liste de tâches",
+        "Filtre les tâches par statut ou priorité",
+        "Crée une nouvelle tâche avec titre, description et priorité",
+        "Modifie une tâche existante",
+        "Supprime une tâche terminée"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id (UUID)",
+        "email (String)",
+        "hashed_password (String)",
+        "created_at (DateTime)"
+      ],
+      "relations": []
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id (UUID)",
+        "title (String)",
+        "description (Text)",
+        "status (Enum: todo/in_progress/done)",
+        "priority (Enum: low/medium/high)",
+        "due_date (Date)",
+        "user_id (UUID, foreign key)",
+        "created_at (DateTime)",
+        "updated_at (DateTime)"
+      ],
+      "relations": [
+        "Many-to-One avec User"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/register",
+      "description": "Inscription d'un nouvel utilisateur",
+      "auth_required": false,
+      "request_body": {
+        "email": "string",
+        "password": "string"
+      },
+      "response": {
+        "id": "UUID",
+        "email": "string"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/token",
+      "description": "Connexion et génération de JWT",
+      "auth_required": false,
+      "request_body": {
+        "username": "string (email)",
+        "password": "string"
+      },
+      "response": {
+        "access_token": "string",
+        "token_type": "bearer"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "description": "Liste des tâches avec filtres optionnels",
+      "auth_required": true,
+      "query_params": {
+        "status": "optional enum(todo/in_progress/done)",
+        "priority": "optional enum(low/medium/high)"
+      },
+      "response": [
+        {
+          "id": "UUID",
+          "title": "string",
+          "description": "string",
+          "status": "enum",
+          "priority": "enum",
+          "due_date": "date (nullable)",
+          "created_at": "datetime"
+        }
+      ]
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "description": "Création d'une nouvelle tâche",
+      "auth_required": true,
+      "request_body": {
+        "title": "string (required)",
+        "description": "string (optional)",
+        "status": "enum (default: todo)",
+        "priority": "enum (default: medium)",
+        "due_date": "date (optional)"
+      },
+      "response": {
+        "id": "UUID",
+        "title": "string",
+        "status": "enum"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{task_id}",
+      "description": "Modification d'une tâche existante",
+      "auth_required": true,
+      "request_body": {
+        "title": "string (optional)",
+        "description": "string (optional)",
+        "status": "enum (optional)",
+        "priority": "enum (optional)",
+        "due_date": "date (optional)"
+      },
+      "response": {
+        "id": "UUID",
+        "title": "string",
+        "status": "enum"
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{task_id}",
+      "description": "Suppression d'une tâche",
+      "auth_required": true,
+      "response": {
+        "detail": "Task successfully deleted"
+      }
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Material-UI + React Router",
+    "backend": "FastAPI + Python 3.10 + SQLAlchemy",
+    "database": "PostgreSQL 15",
+    "auth": "JWT avec python-jose + passlib (bcrypt)",
+    "cache": "None (Redis optionnel)",
+    "message_broker": "None",
+    "container": "Docker + Docker Compose + GitHub Actions",
+    "cloud": "Local pour développement, AWS ECS/Heroku pour production"
+  },
+  "dev_instructions": {
+    "database": {
+      "Oumeyma": {
+        "tâches": [
+          "Créer les modèles SQLAlchemy pour User et Task avec les champs spécifiés",
+          "Configurer la relation Many-to-One entre Task et User",
+          "Implémenter les indexes idx_task_user_status et idx_task_user_priority",
+          "Créer les migrations Alembic pour la structure initiale",
+          "Configurer la connexion à PostgreSQL via SQLAlchemy avec les variables d'environnement",
+          "Implémenter les fonctions de base pour les opérations CRUD sur les deux modèles",
+          "Exemple de modèle User à créer :",
+          "python",
+          "from sqlalchemy import Column, String, DateTime, func\nfrom sqlalchemy.dialects.postgresql import UUID\nimport uuid\n\nclass User(Base):\n    __tablename__ = 'user'\n    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)\n    email = Column(String, unique=True, index=True, nullable=False)\n    hashed_password = Column(String, nullable=False)\n    created_at = Column(DateTime, server_default=func.now())\n",
+          "Exemple de modèle Task à créer :",
+          "python\nfrom sqlalchemy import Column, String, Text, Enum, Date, DateTime, func\nfrom sqlalchemy.dialects.postgresql import UUID\nfrom sqlalchemy.sql import expression\nimport uuid\nimport enum\n\nclass TaskStatus(enum.Enum):\n    todo = 'todo'\n    in_progress = 'in_progress'\n    done = 'done'\n\nclass TaskPriority(enum.Enum):\n    low = 'low'\n    medium = 'medium'\n    high = 'high'\n\nclass Task(Base):\n    __tablename__ = 'task'\n    id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)\n    title = Column(String(255), nullable=False)\n    description = Column(Text, nullable=True)\n    status = Column(Enum(TaskStatus), default=TaskStatus.todo, nullable=False)\n    priority = Column(Enum(TaskPriority), default=TaskPriority.medium, nullable=False)\n    due_date = Column(Date, nullable=True)\n    user_id = Column(UUID(as_uuid=True), ForeignKey('user.id'), nullable=False)\n    created_at = Column(DateTime, server_default=func.now())\n    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())\n"
+        ],
+        "fichiers_attendus": [
+          "models/user.py",
+          "models/task.py",
+          "database/session.py",
+          "database/base.py",
+          "alembic/versions/initial_migration.py"
+        ]
+      }
+    },
+    "backend": {
+      "Akram": {
+        "tâches": [
+          "Configurer le projet FastAPI avec la structure suivante :",
+          "\nproject/\n├── app/\n│   ├── api/\n│   │   ├── v1/\n│   │   │   ├── endpoints/\n│   │   │   │   ├── auth.py\n│   │   │   │   └── tasks.py\n│   │   │   └── api.py\n│   ├── core/\n│   │   ├── config.py\n│   │   ├── security.py\n│   │   └── dependencies.py\n│   ├── db/\n│   │   ├── base.py\n│   │   └── session.py\n│   ├── models/\n│   │   ├── user.py\n│   │   └── task.py\n│   ├── schemas/\n│   │   ├── user.py\n│   │   └── task.py\n│   └── main.py\n",
+          "Implémenter l'authentification JWT :",
+          "- Créer les schémas Pydantic pour User (UserCreate, UserInDB, UserOut)",
+          "- Implémenter les endpoints /register et /token avec validation des données",
+          "- Configurer la sécurité avec python-jose et passlib (bcrypt)",
+          "- Créer un middleware pour valider les JWT sur les routes protégées",
+          "Implémenter les endpoints de gestion des tâches :",
+          "- GET /tasks avec support des filtres status et priority",
+          "- POST /tasks avec validation des données",
+          "- PUT /tasks/{task_id} avec vérification de l'appartenance à l'utilisateur",
+          "- DELETE /tasks/{task_id} avec vérification de l'appartenance",
+          "Configurer CORS pour accepter les requêtes du frontend",
+          "Implémenter la gestion des erreurs avec des réponses HTTP appropriées",
+          "Exemple d'endpoint à implémenter (tasks.py) :",
+          "python\nfrom fastapi import APIRouter, Depends, HTTPException\nfrom sqlalchemy.orm import Session\nfrom typing import List\nfrom .. import schemas, models\nfrom ..db.session import get_db\nfrom ..core.security import get_current_user\n\nrouter = APIRouter()\n\n@router.get(\"/tasks\", response_model=List[schemas.Task])\nasync def read_tasks(\n    status: Optional[schemas.TaskStatus] = None,\n    priority: Optional[schemas.TaskPriority] = None,\n    db: Session = Depends(get_db),\n    current_user: models.User = Depends(get_current_user)\n):\n    query = db.query(models.Task).filter(models.Task.user_id == current_user.id)\n    if status:\n        query = query.filter(models.Task.status == status)\n    if priority:\n        query = query.filter(models.Task.priority == priority)\n    return query.all()\n"
+        ],
+        "fichiers_attendus": [
+          "app/main.py",
+          "app/api/v1/endpoints/auth.py",
+          "app/api/v1/endpoints/tasks.py",
+          "app/core/security.py",
+          "app/core/config.py",
+          "app/schemas/user.py",
+          "app/schemas/task.py",
+          "app/core/dependencies.py",
+          "requirements.txt"
+        ]
+      }
+    },
+    "frontend": {
+      "Mactar": {
+        "tâches": [
+          "Configurer le projet React avec la structure suivante :",
+          "\nproject/\n├── src/\n│   ├── components/\n│   │   ├── auth/\n│   │   │   ├── LoginForm.tsx\n│   │   │   └── RegisterForm.tsx\n│   │   ├── tasks/\n│   │   │   ├── TaskList.tsx\n│   │   │   ├── TaskItem.tsx\n│   │   │   ├── TaskForm.tsx\n│   │   │   └── TaskFilters.tsx\n│   │   └── shared/\n│   │       ├── Navbar.tsx\n│   │       ├── PrivateRoute.tsx\n│   │       └── ErrorBoundary.tsx\n│   ├── contexts/\n│   │   ├── AuthContext.tsx\n│   │   └── TaskContext.tsx\n│   ├── pages/\n│   │   ├── LoginPage.tsx\n│   │   ├── RegisterPage.tsx\n│   │   ├── DashboardPage.tsx\n│   │   └── TaskDetailPage.tsx\n│   ├── services/\n│   │   ├── api.ts\n│   │   ├── auth.ts\n│   │   └── tasks.ts\n│   ├── types/\n│   │   ├── auth.ts\n│   │   └── tasks.ts\n│   ├── App.tsx\n│   ├── index.tsx\n│   └── react-app-env.d.ts\n",
+          "Implémenter l'authentification :",
+          "- Créer les formulaires de login et register avec validation",
+          "- Configurer le contexte d'authentification (AuthContext) pour gérer le JWT",
+          "- Implémenter les redirections après connexion/inscription",
+          "- Créer un composant PrivateRoute pour protéger les routes",
+          "Implémenter le tableau de bord :",
+          "- Créer le composant TaskList avec affichage des tâches",
+          "- Implémenter les filtres par status et priority",
+          "- Créer le composant TaskForm pour la création/modification des tâches",
+          "- Implémenter la suppression de tâches avec confirmation",
+          "Configurer le routing avec React Router :",
+          "- Routes publiques (/login, /register)",
+          "- Routes protégées (/dashboard, /tasks/:id)",
+          "Configurer Axios avec interceptors pour :",
+          "- Ajouter le JWT aux requêtes",
+          "- Gérer les erreurs 401 (déconnexion automatique)",
+          "Exemple de composant à implémenter (TaskList.tsx) :",
+          "tsx\nimport React, { useState, useEffect } from 'react';\nimport { Task } from '../../types/tasks';\nimport { getTasks } from '../../services/tasks';\nimport TaskItem from './TaskItem';\nimport TaskFilters from './TaskFilters';\n\nconst TaskList: React.FC = () => {\n    const [tasks, setTasks] = useState<Task[]>([]);\n    const [loading, setLoading] = useState(true);\n    const [filters, setFilters] = useState({\n        status: '',\n        priority: ''\n    });\n\n    useEffect(() => {\n        const fetchTasks = async () => {\n            try {\n                const data = await getTasks(filters.status, filters.priority);\n                setTasks(data);\n            } catch (error) {\n                console.error('Failed to fetch tasks:', error);\n            } finally {\n                setLoading(false);\n            }\n        };\n        fetchTasks();\n    }, [filters]);\n\n    if (loading) return <div>Loading...</div>;\n\n    return (\n        <div>\n            <TaskFilters filters={filters} setFilters={setFilters} />\n            <div>\n                {tasks.map(task => (\n                    <TaskItem key={task.id} task={task} />\n                ))}\n            </div>\n        </div>\n    );\n};\n\nexport default TaskList;\n"
+        ],
+        "fichiers_attendus": [
+          "src/App.tsx",
+          "src/index.tsx",
+          "src/components/auth/LoginForm.tsx",
+          "src/components/auth/RegisterForm.tsx",
+          "src/components/tasks/TaskList.tsx",
+          "src/components/tasks/TaskItem.tsx",
+          "src/components/tasks/TaskForm.tsx",
+          "src/components/tasks/TaskFilters.tsx",
+          "src/contexts/AuthContext.tsx",
+          "src/contexts/TaskContext.tsx",
+          "src/services/api.ts",
+          "src/services/auth.ts",
+          "src/services/tasks.ts",
+          "src/pages/LoginPage.tsx",
+          "src/pages/RegisterPage.tsx",
+          "src/pages/DashboardPage.tsx",
+          "package.json"
+        ]
+      }
+    }
+  },
+  "constraints": [
+    "Le frontend doit être responsive (mobile-first)",
+    "Toutes les routes API doivent retourner des réponses JSON cohérentes",
+    "Les mots de passe ne doivent jamais être stockés en clair",
+    "Les tokens JWT doivent avoir une durée de vie limitée",
+    "Les tests doivent couvrir au moins 80% du code backend",
+    "Le pipeline CI/CD doit échouer si les tests ne passent pas"
+  ],
+  "estimated_files": {
+    "database": 5,
+    "backend": 12,
+    "frontend": 18
+  }
+}

@@ -1,0 +1,129 @@
+{
+  "project": {
+    "name": "todo-app-test21",
+    "description": "Application full-stack de gestion de tâches avec authentification JWT, filtres avancés, et pipeline CI/CD",
+    "complexity": "medium"
+  },
+  "modules": [
+    "authentication",
+    "task_management",
+    "dashboard",
+    "ci_cd"
+  ],
+  "user_journeys": [
+    {
+      "name": "Inscription et première connexion",
+      "steps": [
+        "L'utilisateur accède à la page d'inscription",
+        "Il remplit le formulaire avec email, mot de passe et nom",
+        "Il soumet le formulaire et est redirigé vers la page de login",
+        "Il se connecte avec ses identifiants et accède au tableau de bord"
+      ]
+    },
+    {
+      "name": "Gestion des tâches",
+      "steps": [
+        "L'utilisateur connecté voit la liste de ses tâches",
+        "Il applique des filtres par statut et priorité",
+        "Il crée une nouvelle tâche avec un titre, une description et une date d'échéance",
+        "Il modifie le statut d'une tâche existante",
+        "Il supprime une tâche terminée"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id",
+        "email",
+        "hashed_password",
+        "full_name",
+        "created_at"
+      ],
+      "relations": []
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "due_date",
+        "created_at",
+        "updated_at",
+        "user_id"
+      ],
+      "relations": [
+        "Many-to-One avec User"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "description": "Inscription d'un nouvel utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Connexion et génération d'un token JWT",
+      "auth_required": false
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "description": "Liste des tâches avec filtres (status, priority)",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "description": "Création d'une nouvelle tâche",
+      "auth_required": true
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{task_id}",
+      "description": "Mise à jour d'une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{task_id}",
+      "description": "Suppression d'une tâche",
+      "auth_required": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Vite + Tailwind CSS + Headless UI",
+    "backend": "FastAPI + Python 3.10 + SQLAlchemy",
+    "database": "PostgreSQL 15",
+    "auth": "JWT avec python-jose + passlib bcrypt",
+    "cache": "none",
+    "message_broker": "none",
+    "container": "Docker + Docker Compose + GitHub Actions (CI/CD)",
+    "cloud": "Déploiement local (développement), cible: Render/AWS ECS (production)"
+  },
+  "dev_instructions": {
+    "database": "Oumeyma, voici les instructions détaillées pour la base de données:\n1. Crée deux modèles SQLAlchemy: `User` et `Task` avec les champs exacts spécifiés dans le TECHSTACK.\n2. Implémente la relation Many-to-One entre `Task` et `User` avec `relationship()` et `back_populates`.\n3. Ajoute les indexes suivants pour optimiser les requêtes de filtrage:\n   - `idx_task_user_id` sur `task(user_id)`\n   - `idx_task_status` sur `task(status)`\n   - `idx_task_priority` sur `task(priority)`\n4. Utilise Alembic pour gérer les migrations. Crée une migration initiale avec `alembic revision --autogenerate -m \"Initial migration\"`.\n5. Configure la connexion à PostgreSQL via les variables d'environnement (DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD).\n6. Assure-toi que les champs `status` et `priority` utilisent des Enum SQLAlchemy pour garantir l'intégrité des données.",
+    "backend": "Akram, voici les instructions détaillées pour le backend:\n1. Structure du projet:\n   - `routers/`: Contient les routeurs FastAPI pour `/auth` et `/tasks`.\n   - `services/`: Logique métier pour les utilisateurs et les tâches.\n   - `models/`: Modèles SQLAlchemy (à importer depuis le travail d'Oumeyma).\n   - `utils/`: Utilitaires JWT et configuration.\n   - `database/`: Gestion des sessions SQLAlchemy.\n2. Authentification:\n   - Implémente un middleware FastAPI pour vérifier les tokens JWT sur les routes protégées. Utilise `python-jose` pour décoder les tokens.\n   - Crée un utilitaire JWT avec les fonctions `create_access_token()` et `verify_token()`.\n   - Utilise `passlib` avec bcrypt pour hacher les mots de passe.\n3. Endpoints:\n   - `/auth/register`: Valide les données, hache le mot de passe, crée l'utilisateur en base.\n   - `/auth/login`: Vérifie les identifiants, génère un token JWT.\n   - `/tasks`: Implémente les filtres via les query params. Utilise SQLAlchemy pour les requêtes avec filtres dynamiques.\n   - Gère les erreurs avec des codes HTTP appropriés (400 pour les données invalides, 401 pour non autorisé, 404 pour non trouvé).\n4. Configuration:\n   - Utilise Pydantic pour gérer les variables d'environnement (SECRET_KEY, DATABASE_URL, etc.).\n   - Ajoute des tests unitaires pour les services et les utilitaires JWT.",
+    "frontend": "Mactar, voici les instructions détaillées pour le frontend:\n1. Structure du projet:\n   - `pages/`: Contient les pages React (LoginPage, RegisterPage, DashboardPage).\n   - `components/`: Composants réutilisables (TaskList, TaskItem, TaskFilters, etc.).\n   - `context/`: Contexte d'authentification (AuthContext).\n   - `hooks/`: Hooks personnalisés (ex: useTasks pour gérer les tâches).\n   - `services/`: Services API (authService, taskService).\n   - `types/`: Types TypeScript pour les modèles (User, Task).\n2. Authentification:\n   - Crée un contexte `AuthContext` pour gérer le token JWT et les informations de l'utilisateur.\n   - Implémente un composant `ProtectedRoute` pour protéger les routes nécessitant une authentification.\n   - Utilise Axios avec un intercepteur pour ajouter le token JWT aux headers des requêtes.\n3. Gestion des tâches:\n   - Utilise Zustand pour gérer l'état global des tâches et des filtres.\n   - Implémente les filtres via les query params de l'URL (ex: `?status=todo&priority=high`).\n   - Crée un composant `TaskForm` en modal pour créer/éditer les tâches.\n   - Ajoute une pagination côté client pour la liste des tâches.\n4. Styling:\n   - Utilise Tailwind CSS pour le styling et Headless UI pour les composants interactifs (modals, dropdowns).\n   - Crée des composants réutilisables pour les formulaires (ex: InputField, Button).\n5. Routing:\n   - Utilise React Router v6 pour la navigation.\n   - Gère les redirections après login/inscription.\n6. Validation:\n   - Utilise React Hook Form avec Zod pour la validation des formulaires.\n   - Affiche les erreurs de validation sous les champs concernés."
+  },
+  "constraints": [
+    "Le token JWT doit expirer après 24 heures",
+    "Les mots de passe doivent être hachés avec bcrypt avant stockage",
+    "Les routes protégées doivent vérifier la présence et la validité du token JWT",
+    "Les filtres de tâches doivent être implémentés côté backend pour des performances optimales",
+    "Le pipeline CI/CD doit exécuter les tests avant tout déploiement"
+  ],
+  "estimated_files": {
+    "database": 3,
+    "backend": 12,
+    "frontend": 18
+  }
+}

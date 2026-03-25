@@ -44,6 +44,7 @@ logger = logging.getLogger(__name__)
 
 _db_graph  = None
 _DB_MODULE = None
+_IMPORT_ERROR = None  # Stocke l'erreur pour l'afficher plus tard
 
 try:
     import importlib, sys as _sys, pathlib as _pathlib
@@ -51,11 +52,20 @@ try:
     _root_dir   = _agents_dir.parent                               # racine projet Manal
     if str(_root_dir) not in _sys.path:
         _sys.path.insert(0, str(_root_dir))
+    
     _DB_MODULE = importlib.import_module("agents.dev_database")
     _db_graph  = _DB_MODULE.graph
-    logger.info("[db_adapter] Sous-graphe DB chargé depuis agents/dev_database.py")
+    logger.info("[db_adapter] ✅ Sous-graphe DB chargé depuis agents/dev_database.py")
 except Exception as _e:
-    logger.error("[db_adapter] Import agents/dev_database échoué : %s", _e)
+    import traceback
+    _IMPORT_ERROR = {
+        "type": type(_e).__name__,
+        "msg": str(_e),
+        "tb": traceback.format_exc()
+    }
+    logger.error(f"[db_adapter] ❌ IMPORT ERROR: {_IMPORT_ERROR['type']}: {_IMPORT_ERROR['msg']}")
+    logger.error(f"[db_adapter] Traceback:\n{_IMPORT_ERROR['tb']}")
+
 
 if _db_graph is None:
     logger.warning("[db_adapter] Sous-graphe DB introuvable — mode stub activé")
@@ -134,6 +144,21 @@ def db_adapter_node(state: dict, llm=None) -> dict:
     dict : mise à jour de l'AgentState avec db_output
     """
     log_phase_start("db_adapter", "Lancement du sous-graphe DB (ibm/main.py)")
+
+    # DEBUG: Affiche l'état du graphe
+    log_agent_thinking("db_adapter", f"🔍 db_graph status: {_db_graph}")
+    log_agent_thinking("db_adapter", f"🔍 db_module status: {_DB_MODULE}")
+    
+    # Si erreur au chargement, l'afficher maintenant
+    if _IMPORT_ERROR:
+        log_error("db_adapter", f"❌ ERREUR D'IMPORT au démarrage:")
+        log_error("db_adapter", f"   Type: {_IMPORT_ERROR['type']}")
+        log_error("db_adapter", f"   Message: {_IMPORT_ERROR['msg']}")
+        log_error("db_adapter", f"   Traceback:\n{_IMPORT_ERROR['tb']}")
+    
+    if _db_graph is None and _DB_MODULE is None:
+        log_error("db_adapter", "❌ CRITIQUE: db_graph et db_module sont TOUS LES DEUX None")
+        log_error("db_adapter", f"L'import a échoué. Vérifiez les logs initiaux lors du chargement du module.")
 
     blueprint    = state.get("architect_blueprint", {})
     project_name = blueprint.get("project", {}).get("name", state.get("project_name", "app"))

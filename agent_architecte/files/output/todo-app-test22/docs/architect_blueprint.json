@@ -1,0 +1,416 @@
+{
+  "project": {
+    "name": "todo-app-test22",
+    "description": "Application full-stack de gestion de tâches avec authentification JWT, filtres avancés et pipeline CI/CD",
+    "complexity": "medium"
+  },
+  "modules": [
+    "authentication",
+    "task_management",
+    "user_profile",
+    "dashboard"
+  ],
+  "user_journeys": [
+    {
+      "name": "Inscription et première connexion",
+      "steps": [
+        "L'utilisateur accède à la page d'inscription",
+        "Remplit le formulaire et soumet",
+        "Est redirigé vers la page de connexion",
+        "Se connecte avec ses identifiants",
+        "Est redirigé vers le tableau de bord"
+      ]
+    },
+    {
+      "name": "Gestion des tâches",
+      "steps": [
+        "L'utilisateur crée une nouvelle tâche",
+        "Filtre les tâches par statut",
+        "Modifie une tâche existante",
+        "Supprime une tâche terminée"
+      ]
+    },
+    {
+      "name": "Filtrage avancé",
+      "steps": [
+        "L'utilisateur sélectionne un filtre de statut",
+        "Ajoute un filtre de priorité",
+        "La liste des tâches est mise à jour dynamiquement"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id (Integer, Primary Key)",
+        "email (String, Unique)",
+        "hashed_password (String)",
+        "full_name (String, nullable)",
+        "is_active (Boolean)",
+        "created_at (DateTime)"
+      ],
+      "relations": [
+        "One-to-Many avec Task"
+      ]
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id (Integer, Primary Key)",
+        "title (String)",
+        "description (Text, nullable)",
+        "status (Enum: todo, in_progress, done)",
+        "priority (Enum: low, medium, high)",
+        "due_date (Date, nullable)",
+        "created_at (DateTime)",
+        "updated_at (DateTime)",
+        "user_id (Integer, Foreign Key)"
+      ],
+      "relations": [
+        "Many-to-One avec User"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "description": "Inscription d'un nouvel utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Connexion avec JWT",
+      "auth_required": false
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "description": "Liste des tâches avec filtres",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "description": "Création d'une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/{task_id}",
+      "description": "Détails d'une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{task_id}",
+      "description": "Mise à jour d'une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{task_id}",
+      "description": "Suppression d'une tâche",
+      "auth_required": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Vite + Tailwind CSS + React Router + React Query",
+    "backend": "FastAPI + Python 3.10 + SQLAlchemy + Pydantic",
+    "database": "PostgreSQL 15",
+    "auth": "JWT avec python-jose + passlib (bcrypt)",
+    "cache": "none",
+    "message_broker": "none",
+    "container": "Docker + Docker Compose + Nginx (frontend)",
+    "cloud": "Déploiement local (cible potentielle: AWS ECS/Vercel)"
+  },
+  "dev_instructions": {
+    "database": {
+      "models": {
+        "User": {
+          "fields": {
+            "id": "Integer, primary_key=True",
+            "email": "String(255), unique=True, index=True",
+            "hashed_password": "String(255)",
+            "full_name": "String(100), nullable=True",
+            "is_active": "Boolean, default=True",
+            "created_at": "DateTime, default=datetime.utcnow"
+          },
+          "relationships": {
+            "tasks": "relationship('Task', back_populates='owner', cascade='all, delete-orphan')"
+          }
+        },
+        "Task": {
+          "fields": {
+            "id": "Integer, primary_key=True",
+            "title": "String(100)",
+            "description": "Text, nullable=True",
+            "status": "Enum('todo', 'in_progress', 'done', name='task_status')",
+            "priority": "Enum('low', 'medium', 'high', name='task_priority')",
+            "due_date": "Date, nullable=True",
+            "created_at": "DateTime, default=datetime.utcnow",
+            "updated_at": "DateTime, default=datetime.utcnow, onupdate=datetime.utcnow",
+            "user_id": "Integer, ForeignKey('user.id')"
+          },
+          "relationships": {
+            "owner": "relationship('User', back_populates='tasks')"
+          }
+        }
+      },
+      "migrations": "Utiliser Alembic pour créer et gérer les migrations. Créer une migration initiale avec `alembic revision --autogenerate -m 'Initial migration'` après avoir défini les modèles.",
+      "indexes": "Créer les indexes suivants pour optimiser les requêtes de filtrage: idx_task_user_id, idx_task_status, idx_task_priority.",
+      "connection": "Configurer la connexion à PostgreSQL via SQLAlchemy avec un pool de connexions. Utiliser les variables d'environnement pour DATABASE_URL."
+    },
+    "backend": {
+      "project_structure": {
+        "app/": {
+          "main.py": "Point d'entrée FastAPI",
+          "api/": {
+            "routers/": {
+              "auth.py": "Routes d'authentification",
+              "tasks.py": "Routes des tâches"
+            },
+            "services/": {
+              "users.py": "Logique métier utilisateurs",
+              "tasks.py": "Logique métier tâches",
+              "auth.py": "Logique JWT"
+            },
+            "models/": {
+              "models.py": "Modèles SQLAlchemy",
+              "schemas.py": "Schémas Pydantic"
+            },
+            "database/": {
+              "database.py": "Configuration SQLAlchemy",
+              "session.py": "Gestion des sessions"
+            },
+            "config.py": "Configuration Pydantic"
+          },
+          "tests/": "Tests unitaires et d'intégration"
+        },
+        "alembic/": "Migrations Alembic",
+        "requirements.txt": "Dépendances Python"
+      },
+      "auth_implementation": {
+        "jwt": {
+          "secret_key": "Générer une clé secrète forte (ex: openssl rand -hex 32)",
+          "algorithm": "HS256",
+          "access_token_expire_minutes": 30,
+          "library": "python-jose[cryptography] pour la génération/validation, passlib[bcrypt] pour le hachage"
+        },
+        "endpoints": {
+          "register": {
+            "validation": "Vérifier que l'email n'existe pas déjà, valider le format du mot de passe (min 8 caractères)",
+            "hashing": "Utiliser passlib.context.CryptContext pour hacher le mot de passe"
+          },
+          "login": {
+            "verification": "Vérifier les identifiants, générer un JWT avec user.id comme subject"
+          }
+        },
+        "dependencies": "Créer une dépendance FastAPI get_current_user pour valider le token JWT sur les routes protégées"
+      },
+      "tasks_implementation": {
+        "crud_operations": {
+          "create": "Vérifier que l'utilisateur est propriétaire de la tâche (via user_id)",
+          "read": "Filtrer les tâches par user_id, implémenter les filtres status et priority",
+          "update": "Vérifier les permissions, mettre à jour updated_at automatiquement",
+          "delete": "Vérifier les permissions avant suppression"
+        },
+        "filters": {
+          "status": "Filtre optionnel (todo, in_progress, done)",
+          "priority": "Filtre optionnel (low, medium, high)",
+          "pagination": "Implémenter limit et offset pour la pagination"
+        }
+      },
+      "testing": {
+        "unit_tests": "Créer des tests pour chaque endpoint avec pytest, mocking des dépendances",
+        "integration_tests": "Tester les interactions entre services",
+        "auth_tests": "Tester les scénarios d'authentification réussie/échouée"
+      },
+      "environment": {
+        "variables": [
+          "DATABASE_URL=postgresql://user:password@db:5432/todoapp",
+          "JWT_SECRET=your-secret-key",
+          "JWT_ALGORITHM=HS256",
+          "ACCESS_TOKEN_EXPIRE_MINUTES=30"
+        ],
+        "config": "Utiliser Pydantic BaseSettings pour gérer les variables d'environnement"
+      }
+    },
+    "frontend": {
+      "project_structure": {
+        "src/": {
+          "assets/": "Images, polices, etc.",
+          "components/": {
+            "auth/": {
+              "LoginForm.tsx": "Formulaire de connexion",
+              "RegisterForm.tsx": "Formulaire d'inscription"
+            },
+            "tasks/": {
+              "TaskList.tsx": "Liste des tâches",
+              "TaskItem.tsx": "Élément de tâche",
+              "TaskFilters.tsx": "Filtres de statut/priorité",
+              "TaskModal.tsx": "Modal de création/modification"
+            },
+            "layout/": {
+              "AuthLayout.tsx": "Layout pour les pages d'auth",
+              "DashboardLayout.tsx": "Layout pour le tableau de bord",
+              "Header.tsx": "En-tête avec déconnexion",
+              "Sidebar.tsx": "Barre latérale avec navigation"
+            },
+            "ui/": {
+              "Button.tsx": "Composant bouton réutilisable",
+              "Input.tsx": "Composant input réutilisable",
+              "Select.tsx": "Composant select réutilisable",
+              "Modal.tsx": "Composant modal générique"
+            }
+          },
+          "context/": {
+            "AuthContext.tsx": "Contexte d'authentification",
+            "AuthProvider.tsx": "Fournisseur de contexte"
+          },
+          "hooks/": {
+            "useAuth.ts": "Hook personnalisé pour l'authentification",
+            "useTasks.ts": "Hook personnalisé pour les tâches"
+          },
+          "pages/": {
+            "LoginPage.tsx": "Page de connexion",
+            "RegisterPage.tsx": "Page d'inscription",
+            "DashboardPage.tsx": "Page principale du tableau de bord"
+          },
+          "services/": {
+            "api.ts": "Configuration Axios/React Query",
+            "auth.ts": "Appels API pour l'authentification",
+            "tasks.ts": "Appels API pour les tâches"
+          },
+          "types/": {
+            "index.ts": "Types TypeScript partagés"
+          },
+          "utils/": {
+            "auth.ts": "Fonctions utilitaires pour l'auth",
+            "date.ts": "Fonctions de formatage de date"
+          },
+          "App.tsx": "Composant racine avec React Router",
+          "main.tsx": "Point d'entrée React"
+        },
+        "public/": "Fichiers statiques",
+        "vite.config.ts": "Configuration Vite",
+        "tailwind.config.js": "Configuration Tailwind",
+        "tsconfig.json": "Configuration TypeScript"
+      },
+      "auth_implementation": {
+        "context": {
+          "create": "Créer un contexte AuthContext avec les méthodes login, logout, register et l'état user",
+          "provider": "Implémenter AuthProvider avec useReducer pour gérer l'état d'authentification",
+          "persist": "Stocker le token JWT dans localStorage et le restaurer au chargement de l'application"
+        },
+        "protected_routes": {
+          "implementation": "Créer un composant ProtectedRoute qui redirige vers /login si non authentifié",
+          "usage": "Envelopper les routes protégées dans App.tsx"
+        },
+        "api_calls": {
+          "login": "POST /auth/login avec email/mot de passe, stocker le token dans le contexte",
+          "register": "POST /auth/register avec les données du formulaire",
+          "logout": "Supprimer le token du contexte et du localStorage"
+        }
+      },
+      "tasks_implementation": {
+        "data_fetching": {
+          "react_query": "Configurer React Query avec un client Axios personnalisé (avec en-tête Authorization)",
+          "queries": {
+            "getTasks": "useQuery pour récupérer les tâches avec filtres et pagination",
+            "createTask": "useMutation pour créer une tâche",
+            "updateTask": "useMutation pour mettre à jour une tâche",
+            "deleteTask": "useMutation pour supprimer une tâche"
+          }
+        },
+        "components": {
+          "TaskList": {
+            "props": {
+              "tasks": "Task[]",
+              "isLoading": "boolean",
+              "error": "Error | null",
+              "onTaskUpdate": "(task: Task) => void",
+              "onTaskDelete": "(taskId: number) => void"
+            },
+            "features": "Affichage des tâches avec pagination, gestion des états de chargement/erreur"
+          },
+          "TaskFilters": {
+            "props": {
+              "filters": "{ status?: string, priority?: string }",
+              "onFilterChange": "(filters: { status?: string, priority?: string }) => void"
+            },
+            "features": "Deux selects pour filtrer par statut et priorité, bouton de réinitialisation"
+          },
+          "TaskModal": {
+            "props": {
+              "task": "Task | null (null pour création)",
+              "isOpen": "boolean",
+              "onClose": "() => void",
+              "onSubmit": "(task: TaskCreate | TaskUpdate) => void"
+            },
+            "features": "Formulaire avec validation, gestion des champs optionnels, boutons Annuler/Enregistrer"
+          }
+        },
+        "forms": {
+          "validation": "Utiliser React Hook Form avec Zod pour la validation des formulaires",
+          "schemas": {
+            "task": {
+              "title": "string().min(1).max(100)",
+              "description": "string().max(1000).optional()",
+              "status": "string().refine(val => ['todo', 'in_progress', 'done'].includes(val))",
+              "priority": "string().refine(val => ['low', 'medium', 'high'].includes(val))",
+              "due_date": "string().refine(val => !isNaN(Date.parse(val))).optional()"
+            }
+          }
+        }
+      },
+      "styling": {
+        "tailwind": {
+          "theme": {
+            "colors": {
+              "primary": "#3B82F6",
+              "secondary": "#10B981",
+              "danger": "#EF4444",
+              "warning": "#F59E0B",
+              "low": "#10B981",
+              "medium": "#3B82F6",
+              "high": "#EF4444"
+            }
+          },
+          "components": {
+            "TaskItem": "Style différent selon le statut (bordure colorée) et la priorité (icône colorée)",
+            "TaskFilters": "Selects stylisés avec couleurs correspondant aux priorités",
+            "Button": "Variantes primary, secondary, danger avec styles cohérents"
+          }
+        }
+      },
+      "testing": {
+        "unit_tests": "Tester les composants avec Vitest et React Testing Library",
+        "integration_tests": "Tester les interactions entre composants",
+        "e2e_tests": "Configurer Cypress pour les tests end-to-end (optionnel)"
+      },
+      "environment": {
+        "variables": [
+          "VITE_API_URL=http://localhost:8000",
+          "VITE_APP_NAME=TodoApp"
+        ],
+        "config": "Créer un fichier config.ts pour centraliser les variables d'environnement"
+      }
+    }
+  },
+  "constraints": [
+    "Le token JWT doit expirer après 30 minutes d'inactivité",
+    "Les mots de passe doivent être hachés avec bcrypt (coût 12)",
+    "Les filtres de tâches doivent être implémentés côté serveur",
+    "L'application doit être responsive (mobile, tablette, desktop)",
+    "Le pipeline CI/CD doit inclure des tests avant déploiement",
+    "Les indexes PostgreSQL doivent être créés pour les champs fréquemment filtrés"
+  ],
+  "estimated_files": {
+    "database": 3,
+    "backend": 15,
+    "frontend": 25
+  }
+}

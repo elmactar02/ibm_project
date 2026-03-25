@@ -10,9 +10,15 @@ from typing import TypedDict, Annotated
 import operator
 from pathlib import Path
 
-import phoenix as px
-from phoenix.otel import register
-from openinference.instrumentation.langchain import LangChainInstrumentor
+# Phoenix (optionnel - pour l'observabilité, mais peut causer des conflits FastAPI)
+try:
+    import phoenix as px
+    from phoenix.otel import register
+    from openinference.instrumentation.langchain import LangChainInstrumentor
+    PHOENIX_AVAILABLE = True
+except (ImportError, AssertionError) as e:
+    print(f"⚠️  Phoenix import failed (non-critical): {e}")
+    PHOENIX_AVAILABLE = False
 
 from langgraph.graph import StateGraph, END
 from langchain_groq import ChatGroq
@@ -225,6 +231,15 @@ def read_blueprint_node(state: DBAgentState) -> DBAgentState:
     bp = state["blueprint"]
     project_name = bp.get("project", {}).get("name", "default_project")
     
+    # ── Extraire les entités du bon endroit (ils peuvent être dans 2 formats) ──
+    # Format 1: blueprint["entities"] (ancien)
+    # Format 2: blueprint["tech_stack"]["database"]["models"] (nouveau)
+    entities = bp.get("entities", [])
+    if not entities:
+        db_config = bp.get("tech_stack", {}).get("database", {})
+        if isinstance(db_config, dict):
+            entities = db_config.get("models", [])
+    
     # ── Définir les chemins dynamiques
     OUTPUT_DIR = Path(f"./output/database/{project_name}")
     OUTPUT_DIR.mkdir(parents=True, exist_ok=True)
@@ -232,13 +247,13 @@ def read_blueprint_node(state: DBAgentState) -> DBAgentState:
     
     db_context = {
         "project":      bp.get("project", {}),
-        "entities":     bp.get("entities", []),
-        "database":     bp.get("tech_stack", {}).get("database", "PostgreSQL"),
+        "entities":     entities,
+        "database":     bp.get("tech_stack", {}).get("database", "PostgreSQL") if isinstance(bp.get("tech_stack", {}).get("database"), str) else bp.get("tech_stack", {}).get("database", {}).get("technology", "PostgreSQL"),
         "instructions": bp.get("dev_instructions", {}).get("database", ""),
         "constraints":  bp.get("constraints", []),
     }
     print(f"  ✅ Projet   : {db_context['project'].get('name')}")
-    print(f"  ✅ Entités  : {[e['name'] for e in db_context['entities']]}")
+    print(f"  ✅ Entités  : {[e.get('name') for e in db_context['entities']]}")
     print(f"  ✅ DB cible : {db_context['database']}")
     print(f"  ✅ OUTPUT   : {OUTPUT_DIR}")
     print(f"  ✅ DB_PATH  : {DB_PATH}")
@@ -391,7 +406,7 @@ def clean_all_strings(text):
 
 def fix_invalid_escapes(s: str) -> str:
     """Remplace les séquences \\X invalides en JSON par \\\\X."""
-    VALID_ESCAPES = set('"\\\/bfnrtu')
+    VALID_ESCAPES = set(r'"\bfnrtu/')
     result, i = [], 0
     while i < len(s):
         if s[i] == '\\' and i + 1 < len(s):

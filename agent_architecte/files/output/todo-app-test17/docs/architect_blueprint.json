@@ -1,0 +1,128 @@
+{
+  "project": {
+    "name": "todo-app-test17",
+    "description": "Application full-stack de gestion de tâches avec authentification JWT, filtres avancés et pipeline CI/CD.",
+    "complexity": "medium"
+  },
+  "modules": [
+    "auth",
+    "tasks",
+    "dashboard",
+    "ci_cd"
+  ],
+  "user_journeys": [
+    {
+      "name": "Inscription et connexion",
+      "steps": [
+        "L'utilisateur accède à la page de login ou d'inscription.",
+        "Il remplit le formulaire et soumet ses identifiants.",
+        "Le système valide les données et retourne un token JWT.",
+        "L'utilisateur est redirigé vers le dashboard."
+      ]
+    },
+    {
+      "name": "Gestion des tâches",
+      "steps": [
+        "L'utilisateur accède au dashboard.",
+        "Il crée une nouvelle tâche via le formulaire.",
+        "Il filtre les tâches par statut ou priorité.",
+        "Il modifie ou supprime une tâche existante."
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id",
+        "email",
+        "hashed_password",
+        "created_at"
+      ],
+      "relations": [
+        "One-to-Many avec Task"
+      ]
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "created_at",
+        "updated_at",
+        "user_id"
+      ],
+      "relations": [
+        "Many-to-One avec User"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "description": "Inscription d'un nouvel utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Connexion d'un utilisateur existant",
+      "auth_required": false
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "description": "Liste des tâches avec filtres (status, priority)",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "description": "Création d'une nouvelle tâche",
+      "auth_required": true
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{task_id}",
+      "description": "Mise à jour d'une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{task_id}",
+      "description": "Suppression d'une tâche",
+      "auth_required": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Vite + TailwindCSS",
+    "backend": "FastAPI + Python 3.10 + SQLAlchemy",
+    "database": "PostgreSQL 15",
+    "auth": "JWT avec python-jose + passlib (bcrypt)",
+    "cache": "none",
+    "message_broker": "none",
+    "container": "Docker + Docker Compose",
+    "cloud": "Render ou Railway (déploiement via GitHub Actions)"
+  },
+  "dev_instructions": {
+    "database": "Oumeyma, crée les modèles SQLAlchemy suivants :\n1. `User` avec les champs `id` (Integer, PK), `email` (String, unique), `hashed_password` (String), `created_at` (DateTime).\n2. `Task` avec les champs `id` (Integer, PK), `title` (String), `description` (Text, nullable), `status` (Enum: 'todo', 'in_progress', 'done'), `priority` (Enum: 'low', 'medium', 'high'), `created_at` (DateTime), `updated_at` (DateTime), `user_id` (Integer, FK vers User).\n\nAjoute des indexes sur `user_id`, `status` et `priority`. Utilise `alembic` pour les migrations. Implémente une contrainte d'unicité sur `email` pour le modèle User. Configure la base de données PostgreSQL avec les identifiants fournis dans `.env`.",
+    "backend": "Akram, implémente les endpoints suivants avec FastAPI :\n1. `/auth/register` (POST) : Valide les données, hache le mot de passe avec `bcrypt`, crée l'utilisateur et retourne un token JWT.\n2. `/auth/login` (POST) : Vérifie les identifiants, génère un token JWT et le retourne.\n3. `/tasks` (GET) : Retourne les tâches de l'utilisateur avec filtres (status, priority).\n4. `/tasks` (POST) : Crée une nouvelle tâche liée à l'utilisateur.\n5. `/tasks/{task_id}` (PUT) : Met à jour une tâche existante.\n6. `/tasks/{task_id}` (DELETE) : Supprime une tâche.\n\nUtilise `python-jose` pour la gestion des tokens JWT et `passlib` pour le hachage des mots de passe. Structure le code en routers (`auth.py`, `tasks.py`), services (`users_service.py`, `tasks_service.py`) et utils (`jwt_utils.py`, `database.py`). Ajoute des tests unitaires avec `pytest`.",
+    "frontend": "Mactar, crée les pages et composants suivants avec React 18 + TypeScript :\n1. Pages : `LoginPage`, `RegisterPage`, `DashboardPage`.\n2. Composants : `TaskList`, `TaskFilters`, `TaskForm`, `TaskItem`, `AuthLayout`, `DashboardLayout`.\n\nImplémente le routing avec `react-router-dom` et protège les routes avec un hook `useAuth`. Utilise `react-hook-form` pour les formulaires et `axios` pour les appels API. Ajoute un intercepteur pour inclure le token JWT dans les headers. Gère les erreurs avec des notifications (`react-toastify`). Style les composants avec TailwindCSS. Ajoute des tests avec `vitest` et `react-testing-library`."
+  },
+  "constraints": [
+    "Le token JWT doit expirer après 1 heure.",
+    "Les mots de passe doivent être hachés avec bcrypt.",
+    "Les routes protégées doivent vérifier la présence d'un token JWT valide.",
+    "Les filtres de tâches doivent être optimisés avec des indexes en base de données.",
+    "Le pipeline CI/CD doit exécuter les tests avant tout déploiement."
+  ],
+  "estimated_files": {
+    "database": 3,
+    "backend": 8,
+    "frontend": 12
+  }
+}

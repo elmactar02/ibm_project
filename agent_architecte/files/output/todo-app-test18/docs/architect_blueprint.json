@@ -1,0 +1,135 @@
+{
+  "project": {
+    "name": "todo-app-test18",
+    "description": "Application de gestion de tâches avec authentification JWT, filtres par statut/priorité, et pipeline CI/CD.",
+    "complexity": "medium"
+  },
+  "modules": [
+    "authentication",
+    "task_management",
+    "dashboard",
+    "ci_cd"
+  ],
+  "user_journeys": [
+    {
+      "name": "Inscription et première connexion",
+      "steps": [
+        "L'utilisateur accède à la page d'inscription",
+        "Il remplit le formulaire (email + mot de passe) et soumet",
+        "Le système crée un compte et redirige vers le dashboard",
+        "L'utilisateur est automatiquement connecté avec un token JWT"
+      ]
+    },
+    {
+      "name": "Gestion des tâches",
+      "steps": [
+        "L'utilisateur accède au dashboard",
+        "Il crée une nouvelle tâche en cliquant sur 'Ajouter une tâche'",
+        "Il remplit les détails (titre, description, statut, priorité) et soumet",
+        "La tâche apparaît dans la liste avec les filtres appliqués",
+        "Il modifie ou supprime une tâche existante"
+      ]
+    },
+    {
+      "name": "Filtrage des tâches",
+      "steps": [
+        "L'utilisateur sélectionne un filtre (ex: statut = 'todo')",
+        "Le système met à jour la liste des tâches en temps réel",
+        "L'utilisateur combine plusieurs filtres (ex: statut = 'todo' + priorité = 'high')"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id",
+        "email",
+        "hashed_password",
+        "created_at"
+      ],
+      "relations": []
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "created_at",
+        "updated_at",
+        "user_id"
+      ],
+      "relations": [
+        "Many-to-One avec User"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "description": "Inscription utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Connexion utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "description": "Liste des tâches avec filtres",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "description": "Créer une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{task_id}",
+      "description": "Modifier une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{task_id}",
+      "description": "Supprimer une tâche",
+      "auth_required": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Vite + TailwindCSS",
+    "backend": "FastAPI + Python 3.10 + SQLAlchemy",
+    "database": "PostgreSQL 15",
+    "auth": "JWT (python-jose + passlib bcrypt)",
+    "cache": "none",
+    "message_broker": "none",
+    "container": "Docker + Docker Compose",
+    "cloud": "GitHub Actions (CI/CD) + déploiement local/cloud (ex: AWS EC2)"
+  },
+  "dev_instructions": {
+    "database": "Oumeyma, crée les modèles SQLAlchemy suivants :\n1. User : id (Integer, PK), email (String, unique), hashed_password (String), created_at (DateTime).\n2. Task : id (Integer, PK), title (String), description (Text, nullable), status (Enum: 'todo', 'in_progress', 'done'), priority (Enum: 'low', 'medium', 'high'), created_at (DateTime), updated_at (DateTime), user_id (Integer, FK -> User.id).\n\nUtilise Alembic pour les migrations. Ajoute des indexes sur user_id (Task) et email (User). Implémente les relations avec back_populates pour le chargement eager. Exemple de relation :\npython\nclass Task(Base):\n    __tablename__ = 'tasks'\n    user_id = Column(Integer, ForeignKey('users.id'))\n    user = relationship('User', back_populates='tasks')\n",
+    "backend": "Akram, implémente les endpoints suivants avec FastAPI :\n1. /auth/register (POST) : Valide les données, hache le mot de passe (bcrypt), crée l'utilisateur, génère un token JWT.\n2. /auth/login (POST) : Vérifie les identifiants, génère un token JWT.\n3. /tasks (GET) : Récupère les tâches de l'utilisateur avec filtres (status, priority).\n4. /tasks (POST) : Crée une tâche liée à l'utilisateur.\n5. /tasks/{task_id} (PUT) : Met à jour une tâche.\n6. /tasks/{task_id} (DELETE) : Supprime une tâche.\n\nStructure le code en routers (auth.py, tasks.py), services (users_service.py, tasks_service.py), et utils (jwt_utils.py, security.py). Utilise Pydantic pour les modèles de requête/réponse. Protège les routes avec OAuth2PasswordBearer. Exemple de route protégée :\npython\n@app.get('/tasks', response_model=List[TaskResponse])\nasync def get_tasks(\n    current_user: User = Depends(get_current_user),\n    status: Optional[TaskStatus] = None,\n    priority: Optional[TaskPriority] = None\n):\n    return await tasks_service.get_tasks(current_user.id, status, priority)\n",
+    "frontend": "Mactar, crée les pages et composants suivants :\n1. Pages :\n   - LoginPage (/login) : Formulaire de connexion avec email/mot de passe.\n   - RegisterPage (/register) : Formulaire d'inscription.\n   - DashboardPage (/) : Tableau de bord avec TaskList, TaskFilters, et TaskFormModal.\n\n2. Composants :\n   - TaskList : Affiche les tâches sous forme de tableau avec boutons d'action (modifier/supprimer).\n   - TaskFilters : Boutons radio pour filtrer par status et priority.\n   - TaskFormModal : Modal pour créer/modifier une tâche.\n   - AuthLayout : Layout pour les pages de login/register.\n   - DashboardLayout : Layout pour le dashboard avec header et sidebar.\n\nUtilise React Router v6 pour le routing. Protège les routes avec un composant <ProtectedRoute>. Gère l'état global avec Context API (AuthContext pour l'authentification, TaskContext pour les tâches). Appelle les endpoints backend avec fetch/axios. Exemple de contexte pour les tâches :\ntypescript\ninterface Task {\n    id: number;\n    title: string;\n    description?: string;\n    status: 'todo' | 'in_progress' | 'done';\n    priority: 'low' | 'medium' | 'high';\n}\n\ninterface TaskContextType {\n    tasks: Task[];\n    filters: { status?: string; priority?: string };\n    addTask: (task: Omit<Task, 'id'>) => Promise<void>;\n    updateTask: (id: number, task: Partial<Task>) => Promise<void>;\n    deleteTask: (id: number) => Promise<void>;\n    setFilters: (filters: { status?: string; priority?: string }) => void;\n}\n"
+  },
+  "constraints": [
+    "Le token JWT doit expirer après 1 heure",
+    "Les mots de passe doivent être hachés avec bcrypt (coût 12)",
+    "Les routes protégées doivent vérifier la validité du token JWT",
+    "Les filtres de tâches doivent être appliqués côté backend",
+    "Le frontend doit rediriger vers /login si le token est invalide ou expiré"
+  ],
+  "estimated_files": {
+    "database": 3,
+    "backend": 8,
+    "frontend": 12
+  }
+}

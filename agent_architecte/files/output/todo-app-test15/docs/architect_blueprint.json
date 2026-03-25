@@ -1,0 +1,288 @@
+{
+  "project": {
+    "name": "todo-app-test15",
+    "description": "Application full-stack de gestion de tâches avec authentification JWT et pipeline CI/CD",
+    "complexity": "medium"
+  },
+  "modules": [
+    "auth",
+    "tasks",
+    "dashboard",
+    "ci_cd"
+  ],
+  "user_journeys": [
+    {
+      "name": "Inscription et première connexion",
+      "steps": [
+        "L'utilisateur accède à la page /register",
+        "Remplit le formulaire (email + mot de passe)",
+        "Soumet le formulaire → redirection vers /dashboard",
+        "Le token JWT est stocké dans localStorage"
+      ]
+    },
+    {
+      "name": "Gestion des tâches",
+      "steps": [
+        "L'utilisateur authentifié accède à /dashboard",
+        "Filtre les tâches par statut/priorité via les dropdowns",
+        "Crée une nouvelle tâche via le bouton 'Ajouter'",
+        "Modifie une tâche existante en cliquant sur son titre",
+        "Supprime une tâche via l'icône corbeille"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id",
+        "email",
+        "hashed_password",
+        "created_at"
+      ],
+      "relations": []
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "created_at",
+        "updated_at",
+        "user_id"
+      ],
+      "relations": [
+        "Many-to-One avec User"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "description": "Inscription utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Connexion utilisateur (JWT)",
+      "auth_required": false
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "description": "Lister les tâches avec filtres",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "description": "Créer une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{task_id}",
+      "description": "Modifier une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{task_id}",
+      "description": "Supprimer une tâche",
+      "auth_required": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Vite + TailwindCSS",
+    "backend": "FastAPI (Python 3.10) + SQLAlchemy",
+    "database": "PostgreSQL 15",
+    "auth": "JWT (python-jose + passlib bcrypt)",
+    "cache": "none",
+    "message_broker": "none",
+    "container": "Docker + Docker Compose",
+    "cloud": "Local (développement), cible future: Render/Railway"
+  },
+  "dev_instructions": {
+    "database": {
+      "models": [
+        {
+          "name": "User",
+          "code": "from sqlalchemy import Column, Integer, String, DateTime\nfrom sqlalchemy.sql import func\nfrom database import Base\n\nclass User(Base):\n    __tablename__ = 'users'\n    id = Column(Integer, primary_key=True, index=True)\n    email = Column(String(255), unique=True, index=True)\n    hashed_password = Column(String(255))\n    created_at = Column(DateTime(timezone=True), server_default=func.now())"
+        },
+        {
+          "name": "Task",
+          "code": "from sqlalchemy import Column, Integer, String, Text, Enum, DateTime, ForeignKey\nfrom sqlalchemy.sql import func\nfrom sqlalchemy.orm import relationship\nfrom database import Base\nimport enum\n\nclass TaskStatus(str, enum.Enum):\n    todo = 'todo'\n    in_progress = 'in_progress'\n    done = 'done'\n\nclass TaskPriority(str, enum.Enum):\n    low = 'low'\n    medium = 'medium'\n    high = 'high'\n\nclass Task(Base):\n    __tablename__ = 'tasks'\n    id = Column(Integer, primary_key=True, index=True)\n    title = Column(String(255))\n    description = Column(Text, nullable=True)\n    status = Column(Enum(TaskStatus), default=TaskStatus.todo)\n    priority = Column(Enum(TaskPriority), default=TaskPriority.medium)\n    created_at = Column(DateTime(timezone=True), server_default=func.now())\n    updated_at = Column(DateTime(timezone=True), onupdate=func.now())\n    user_id = Column(Integer, ForeignKey('users.id'))\n    user = relationship('User', back_populates='tasks')\n\nUser.tasks = relationship('Task', order_by=Task.id, back_populates='user')"
+        }
+      ],
+      "migrations": "1. Installer Alembic: `pip install alembic`. 2. Initialiser Alembic: `alembic init migrations`. 3. Configurer `alembic.ini` avec l'URL de la base de données. 4. Créer une migration: `alembic revision --autogenerate -m 'Initial migration'`. 5. Appliquer la migration: `alembic upgrade head`.",
+      "indexes": "Créer des indexes pour optimiser les requêtes de filtrage:\nsql\nCREATE INDEX idx_tasks_user_id ON tasks(user_id);\nCREATE INDEX idx_tasks_status ON tasks(status);\nCREATE INDEX idx_tasks_priority ON tasks(priority);\n"
+    },
+    "backend": {
+      "project_structure": {
+        "root": {
+          "app/": {
+            "main.py": "Point d'entrée FastAPI (création de l'app, inclusion des routers)",
+            "database.py": "Configuration SQLAlchemy (engine, session)",
+            "config.py": "Variables d'environnement (DATABASE_URL, SECRET_KEY)",
+            "routers/": {
+              "auth.py": "Routes /auth (login/register)",
+              "tasks.py": "Routes /tasks (CRUD + filtres)"
+            },
+            "services/": {
+              "users.py": "Logique métier pour les utilisateurs",
+              "tasks.py": "Logique métier pour les tâches"
+            },
+            "models/": {
+              "user.py": "Modèle User (SQLAlchemy)",
+              "task.py": "Modèle Task (SQLAlchemy)"
+            },
+            "schemas/": {
+              "user.py": "Schémas Pydantic pour User (request/response)",
+              "task.py": "Schémas Pydantic pour Task (request/response)"
+            },
+            "utils/": {
+              "auth.py": "Fonctions JWT (génération/validation)",
+              "security.py": "Hachage des mots de passe (bcrypt)"
+            }
+          },
+          "tests/": {
+            "test_auth.py": "Tests pour les endpoints /auth",
+            "test_tasks.py": "Tests pour les endpoints /tasks"
+          },
+          "requirements.txt": "Dépendances Python (FastAPI, SQLAlchemy, etc.)",
+          "Dockerfile": "Configuration Docker pour le backend",
+          ".github/workflows/": {
+            "ci_cd.yml": "Pipeline GitHub Actions"
+          }
+        }
+      },
+      "endpoints_implementation": {
+        "auth_register": {
+          "path": "/auth/register",
+          "method": "POST",
+          "code": "from fastapi import APIRouter, Depends, HTTPException\nfrom sqlalchemy.orm import Session\nfrom ..schemas.user import UserCreate, UserResponse\nfrom ..services.users import create_user\nfrom ..database import get_db\n\nrouter = APIRouter()\n\n@router.post('/register', response_model=UserResponse)\ndef register_user(user: UserCreate, db: Session = Depends(get_db)):\n    db_user = db.query(User).filter(User.email == user.email).first()\n    if db_user:\n        raise HTTPException(status_code=400, detail='Email already registered')\n    return create_user(db=db, user=user)",
+          "dependencies": [
+            "UserCreate (Pydantic schema)",
+            "create_user (service)"
+          ]
+        },
+        "tasks_list": {
+          "path": "/tasks",
+          "method": "GET",
+          "code": "from fastapi import APIRouter, Depends, Query\nfrom sqlalchemy.orm import Session\nfrom ..schemas.task import TaskResponse\nfrom ..services.tasks import get_tasks\nfrom ..database import get_db\nfrom ..utils.auth import get_current_user\nfrom ..models.user import User\nfrom typing import Optional\n\nrouter = APIRouter()\n\n@router.get('/', response_model=list[TaskResponse])\ndef list_tasks(\n    db: Session = Depends(get_db),\n    current_user: User = Depends(get_current_user),\n    status: Optional[TaskStatus] = Query(None),\n    priority: Optional[TaskPriority] = Query(None)\n):\n    return get_tasks(db=db, user_id=current_user.id, status=status, priority=priority)",
+          "dependencies": [
+            "get_tasks (service)",
+            "get_current_user (auth utils)"
+          ]
+        }
+      },
+      "auth_implementation": {
+        "jwt_utils": {
+          "code": "from jose import JWTError, jwt\nfrom datetime import datetime, timedelta\nfrom fastapi import Depends, HTTPException, status\nfrom fastapi.security import OAuth2PasswordBearer\nfrom ..config import SECRET_KEY, ALGORITHM\n\noauth2_scheme = OAuth2PasswordBearer(tokenUrl='auth/login')\n\ndef create_access_token(data: dict, expires_delta: timedelta = None):\n    to_encode = data.copy()\n    if expires_delta:\n        expire = datetime.utcnow() + expires_delta\n    else:\n        expire = datetime.utcnow() + timedelta(minutes=30)\n    to_encode.update({'exp': expire})\n    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)\n    return encoded_jwt\n\ndef get_current_user(token: str = Depends(oauth2_scheme)):\n    credentials_exception = HTTPException(\n        status_code=status.HTTP_401_UNAUTHORIZED,\n        detail='Could not validate credentials',\n        headers={'WWW-Authenticate': 'Bearer'},\n    )\n    try:\n        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])\n        user_id: int = payload.get('sub')\n        if user_id is None:\n            raise credentials_exception\n    except JWTError:\n        raise credentials_exception\n    return user_id",
+          "config": {
+            "SECRET_KEY": "Générer une clé secrète forte (ex: `openssl rand -hex 32`)",
+            "ALGORITHM": "HS256",
+            "ACCESS_TOKEN_EXPIRE_MINUTES": 30
+          }
+        }
+      },
+      "tests": "1. Installer pytest: `pip install pytest`. 2. Créer des tests pour chaque endpoint dans `tests/`. Exemple pour `/auth/register`:\npython\nfrom fastapi.testclient import TestClient\nfrom app.main import app\n\ndef test_register_user():\n    client = TestClient(app)\n    response = client.post('/auth/register', json={'email': 'test@example.com', 'password': 'password'})\n    assert response.status_code == 200\n    assert 'id' in response.json()\n"
+    },
+    "frontend": {
+      "project_structure": {
+        "root": {
+          "src/": {
+            "components/": {
+              "auth/": {
+                "AuthLayout.tsx": "Layout pour les pages d'authentification",
+                "LoginForm.tsx": "Formulaire de login",
+                "RegisterForm.tsx": "Formulaire d'inscription"
+              },
+              "dashboard/": {
+                "DashboardLayout.tsx": "Layout principal avec sidebar",
+                "TaskList.tsx": "Liste des tâches avec filtres",
+                "TaskForm.tsx": "Formulaire modal pour créer/modifier une tâche",
+                "TaskCard.tsx": "Carte individuelle pour une tâche"
+              },
+              "ui/": {
+                "Button.tsx": "Composant Button réutilisable",
+                "Input.tsx": "Composant Input réutilisable",
+                "Select.tsx": "Composant Select réutilisable"
+              }
+            },
+            "pages/": {
+              "LoginPage.tsx": "Page de login (/login)",
+              "RegisterPage.tsx": "Page d'inscription (/register)",
+              "DashboardPage.tsx": "Page du tableau de bord (/dashboard)"
+            },
+            "context/": {
+              "AuthContext.tsx": "Contexte pour l'authentification (JWT)",
+              "AuthProvider.tsx": "Provider pour AuthContext"
+            },
+            "stores/": {
+              "useAuthStore.ts": "Store Zustand pour l'authentification",
+              "useTasksStore.ts": "Store Zustand pour les tâches"
+            },
+            "services/": {
+              "api.ts": "Configuration Axios (baseURL, interceptors)",
+              "auth.ts": "Fonctions pour les appels API d'authentification",
+              "tasks.ts": "Fonctions pour les appels API des tâches"
+            },
+            "types/": {
+              "task.ts": "Types TypeScript pour Task",
+              "user.ts": "Types TypeScript pour User"
+            },
+            "App.tsx": "Composant racine avec React Router",
+            "main.tsx": "Point d'entrée React"
+          },
+          "public/": {
+            "index.html": "Fichier HTML principal"
+          },
+          "vite.config.ts": "Configuration Vite",
+          "tailwind.config.js": "Configuration TailwindCSS",
+          "Dockerfile": "Configuration Docker pour le frontend"
+        }
+      },
+      "components_implementation": {
+        "TaskList": {
+          "code": "import { useEffect } from 'react';\nimport { useTasksStore } from '../stores/useTasksStore';\nimport { TaskCard } from './TaskCard';\nimport { TaskStatus, TaskPriority } from '../types/task';\n\nexport const TaskList = () => {\n    const { tasks, fetchTasks, filters, setFilters } = useTasksStore();\n\n    useEffect(() => {\n        fetchTasks(filters.status, filters.priority);\n    }, [filters, fetchTasks]);\n\n    return (\n        <div className='space-y-4'>\n            <div className='flex space-x-4'>\n                <select\n                    value={filters.status}\n                    onChange={(e) => setFilters({ status: e.target.value as TaskStatus })}\n                    className='p-2 border rounded'\n                >\n                    <option value=''>Tous les statuts</option>\n                    <option value='todo'>À faire</option>\n                    <option value='in_progress'>En cours</option>\n                    <option value='done'>Terminé</option>\n                </select>\n                <select\n                    value={filters.priority}\n                    onChange={(e) => setFilters({ priority: e.target.value as TaskPriority })}\n                    className='p-2 border rounded'\n                >\n                    <option value=''>Toutes les priorités</option>\n                    <option value='low'>Faible</option>\n                    <option value='medium'>Moyenne</option>\n                    <option value='high'>Élevée</option>\n                </select>\n            </div>\n            <div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4'>\n                {tasks.map((task) => (\n                    <TaskCard key={task.id} task={task} />\n                ))}\n            </div>\n        </div>\n    );\n};",
+          "dependencies": [
+            "useTasksStore (Zustand)",
+            "TaskCard"
+          ]
+        },
+        "AuthProvider": {
+          "code": "import { createContext, useContext, useEffect, useReducer } from 'react';\nimport { api } from '../services/api';\nimport { useNavigate } from 'react-router-dom';\n\nconst AuthContext = createContext(null);\n\nconst initialState = {\n    isAuthenticated: false,\n    user: null,\n    token: null,\n};\n\nfunction authReducer(state, action) {\n    switch (action.type) {\n        case 'LOGIN':\n            return {\n                ...state,\n                isAuthenticated: true,\n                user: action.payload.user,\n                token: action.payload.token,\n            };\n        case 'LOGOUT':\n            return initialState;\n        default:\n            return state;\n    }\n}\n\nexport const AuthProvider = ({ children }) => {\n    const [state, dispatch] = useReducer(authReducer, initialState);\n    const navigate = useNavigate();\n\n    useEffect(() => {\n        const token = localStorage.getItem('token');\n        if (token) {\n            api.defaults.headers.common['Authorization'] = `Bearer ${token}`;\n            dispatch({ type: 'LOGIN', payload: { token } });\n        }\n    }, []);\n\n    const login = async (email, password) => {\n        const response = await api.post('/auth/login', { email, password });\n        const { access_token } = response.data;\n        localStorage.setItem('token', access_token);\n        api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;\n        dispatch({ type: 'LOGIN', payload: { token: access_token } });\n        navigate('/dashboard');\n    };\n\n    const logout = () => {\n        localStorage.removeItem('token');\n        delete api.defaults.headers.common['Authorization'];\n        dispatch({ type: 'LOGOUT' });\n        navigate('/login');\n    };\n\n    return (\n        <AuthContext.Provider value={{ ...state, login, logout }}>\n            {children}\n        </AuthContext.Provider>\n    );\n};\n\nexport const useAuth = () => useContext(AuthContext);",
+          "dependencies": [
+            "React Router (useNavigate)",
+            "Axios (api)"
+          ]
+        }
+      },
+      "routing": {
+        "code": "import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';\nimport { LoginPage } from './pages/LoginPage';\nimport { RegisterPage } from './pages/RegisterPage';\nimport { DashboardPage } from './pages/DashboardPage';\nimport { AuthProvider, useAuth } from './context/AuthProvider';\n\nconst PrivateRoute = ({ children }) => {\n    const { isAuthenticated } = useAuth();\n    return isAuthenticated ? children : <Navigate to='/login' />;\n};\n\nexport const App = () => {\n    return (\n        <AuthProvider>\n            <Router>\n                <Routes>\n                    <Route path='/login' element={<LoginPage />} />\n                    <Route path='/register' element={<RegisterPage />} />\n                    <Route\n                        path='/dashboard'\n                        element={(\n                            <PrivateRoute>\n                                <DashboardPage />\n                            </PrivateRoute>\n                        )}\n                    />\n                    <Route path='*' element={<Navigate to='/dashboard' />} />\n                </Routes>\n            </Router>\n        </AuthProvider>\n    );\n};"
+      },
+      "api_service": {
+        "code": "import axios from 'axios';\n\nconst api = axios.create({\n    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',\n});\n\napi.interceptors.response.use(\n    (response) => response,\n    (error) => {\n        if (error.response?.status === 401) {\n            localStorage.removeItem('token');\n            window.location.href = '/login';\n        }\n        return Promise.reject(error);\n    }\n);\n\nexport default api;",
+        "env": "VITE_API_URL=http://localhost:8000 (dans .env)"
+      }
+    }
+  },
+  "constraints": [
+    "Le token JWT doit expirer après 30 minutes d'inactivité",
+    "Les mots de passe doivent être hachés avec bcrypt (coût 12)",
+    "Les filtres de tâches doivent être implémentés via query params (status/priority)",
+    "Le frontend doit être responsive (mobile-first avec TailwindCSS)",
+    "Le pipeline CI/CD doit échouer si les tests ne passent pas"
+  ],
+  "estimated_files": {
+    "database": 3,
+    "backend": 15,
+    "frontend": 20
+  }
+}

@@ -1,0 +1,5 @@
+{
+  "revision": "001_initial",
+  "description": "Initial schema with no tables",
+  "python_code": "def upgrade():\n    # No tables to create in the initial schema\n    pass\n\ndef downgrade():\n    # No tables to drop in the initial schema\n    pass"
+}
