@@ -1,0 +1,133 @@
+{
+  "tables": [
+    {
+      "name": "user",
+      "sql": "CREATE TABLE IF NOT EXISTS user (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, hashed_password TEXT NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')), deleted_at TEXT DEFAULT NULL)",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "constraints": [
+            "PRIMARY KEY AUTOINCREMENT"
+          ]
+        },
+        {
+          "name": "email",
+          "type": "TEXT",
+          "constraints": [
+            "NOT NULL",
+            "UNIQUE"
+          ]
+        },
+        {
+          "name": "hashed_password",
+          "type": "TEXT",
+          "constraints": [
+            "NOT NULL"
+          ]
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "constraints": [
+            "NOT NULL",
+            "DEFAULT (datetime('now'))"
+          ]
+        },
+        {
+          "name": "deleted_at",
+          "type": "TEXT",
+          "constraints": [
+            "DEFAULT NULL"
+          ]
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "task",
+      "sql": "CREATE TABLE IF NOT EXISTS task (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, description TEXT DEFAULT NULL, status TEXT NOT NULL, priority TEXT NOT NULL, due_date TEXT DEFAULT NULL, user_id INTEGER NOT NULL, created_at TEXT NOT NULL DEFAULT (datetime('now')), updated_at TEXT NOT NULL DEFAULT (datetime('now')), deleted_at TEXT DEFAULT NULL, FOREIGN KEY (user_id) REFERENCES user(id) ON DELETE CASCADE)",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "constraints": [
+            "PRIMARY KEY AUTOINCREMENT"
+          ]
+        },
+        {
+          "name": "title",
+          "type": "TEXT",
+          "constraints": [
+            "NOT NULL"
+          ]
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "constraints": [
+            "DEFAULT NULL"
+          ]
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "constraints": [
+            "NOT NULL"
+          ]
+        },
+        {
+          "name": "priority",
+          "type": "TEXT",
+          "constraints": [
+            "NOT NULL"
+          ]
+        },
+        {
+          "name": "due_date",
+          "type": "TEXT",
+          "constraints": [
+            "DEFAULT NULL"
+          ]
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "constraints": [
+            "NOT NULL"
+          ]
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "constraints": [
+            "NOT NULL",
+            "DEFAULT (datetime('now'))"
+          ]
+        },
+        {
+          "name": "updated_at",
+          "type": "TEXT",
+          "constraints": [
+            "NOT NULL",
+            "DEFAULT (datetime('now'))"
+          ]
+        },
+        {
+          "name": "deleted_at",
+          "type": "TEXT",
+          "constraints": [
+            "DEFAULT NULL"
+          ]
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": "user(id)",
+          "on_delete": "CASCADE"
+        }
+      ]
+    }
+  ]
+}

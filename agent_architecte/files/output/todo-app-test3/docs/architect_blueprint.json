@@ -1,0 +1,228 @@
+{
+  "project": {
+    "name": "todo-app-test3",
+    "description": "Application de gestion de tâches avec authentification JWT, filtres par statut/priorité, et pipeline CI/CD",
+    "complexity": "medium"
+  },
+  "modules": [
+    "authentication",
+    "task_management",
+    "user_dashboard"
+  ],
+  "user_journeys": [
+    {
+      "name": "Inscription et première connexion",
+      "steps": [
+        "L'utilisateur accède à la page d'inscription",
+        "Remplit le formulaire avec email et mot de passe",
+        "Soumet le formulaire et est redirigé vers la page de login",
+        "Se connecte avec ses identifiants et accède au tableau de bord"
+      ]
+    },
+    {
+      "name": "Gestion des tâches",
+      "steps": [
+        "L'utilisateur crée une nouvelle tâche avec un titre, description, statut et priorité",
+        "Filtre les tâches par statut (ex: 'todo') ou priorité (ex: 'high')",
+        "Modifie une tâche existante (ex: change le statut à 'done')",
+        "Supprime une tâche terminée"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id",
+        "email",
+        "hashed_password",
+        "created_at"
+      ],
+      "relations": [
+        "One-to-Many avec Task"
+      ]
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "created_at",
+        "updated_at",
+        "user_id"
+      ],
+      "relations": [
+        "Many-to-One avec User"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "description": "Inscription d'un nouvel utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Connexion et génération d'un JWT",
+      "auth_required": false
+    },
+    {
+      "method": "GET",
+      "path": "/auth/me",
+      "description": "Récupérer les informations de l'utilisateur courant",
+      "auth_required": true
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "description": "Lister les tâches avec filtres (status, priority)",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "description": "Créer une nouvelle tâche",
+      "auth_required": true
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{task_id}",
+      "description": "Modifier une tâche existante",
+      "auth_required": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{task_id}",
+      "description": "Supprimer une tâche",
+      "auth_required": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript, React Router, Axios, React Query, TailwindCSS",
+    "backend": "FastAPI + Python 3.10, SQLAlchemy, Alembic, python-jose, passlib",
+    "database": {
+      "dev": "SQLite",
+      "prod": "PostgreSQL 15"
+    },
+    "auth": "JWT avec python-jose + passlib bcrypt",
+    "cache": "none",
+    "message_broker": "none",
+    "container": "Docker + Docker Compose",
+    "cloud": "Déploiement local (dev), Heroku/AWS ECS (prod)"
+  },
+  "dev_instructions": {
+    "database": {
+      "Oumeyma": {
+        "models": [
+          {
+            "name": "User",
+            "instructions": "Créer un modèle SQLAlchemy avec les champs: id (Integer, Primary Key), email (String(255), Unique, Index), hashed_password (String(255)), created_at (DateTime, default=datetime.utcnow). Ajouter une relation One-to-Many avec Task via back_populates."
+          },
+          {
+            "name": "Task",
+            "instructions": "Créer un modèle SQLAlchemy avec les champs: id (Integer, Primary Key), title (String(255)), description (Text, nullable), status (Enum('todo', 'in_progress', 'done')), priority (Enum('low', 'medium', 'high')), created_at (DateTime, default=datetime.utcnow), updated_at (DateTime, onupdate=datetime.utcnow), user_id (Integer, ForeignKey('user.id')). Ajouter une relation Many-to-One avec User via back_populates."
+          }
+        ],
+        "migrations": "Configurer Alembic pour gérer les migrations. Créer une migration initiale pour les modèles User et Task. Assurez-vous que les migrations fonctionnent à la fois avec SQLite et PostgreSQL.",
+        "config": "Créer un fichier database.py avec les configurations pour SQLite (dev) et PostgreSQL (prod). Utiliser les variables d'environnement pour la connexion à la base de données (DATABASE_URL)."
+      }
+    },
+    "backend": {
+      "Akram": {
+        "structure": "Organiser le code en modules: auth (routes, service, schemas), tasks (routes, service, schemas), database (config, models), core (config, security). Utiliser FastAPI's dependency injection pour gérer les dépendances.",
+        "auth": {
+          "jwt": "Implémenter la génération et validation des JWT avec python-jose. Utiliser passlib pour hacher les mots de passe avec bcrypt. Configurer le middleware FastAPI OAuth2PasswordBearer pour protéger les routes.",
+          "endpoints": [
+            {
+              "path": "/auth/register",
+              "instructions": "Valider les données d'entrée (email valide, mot de passe >= 8 caractères). Hacher le mot de passe avec bcrypt. Créer l'utilisateur en base de données. Retourner un message de succès."
+            },
+            {
+              "path": "/auth/login",
+              "instructions": "Valider les identifiants. Générer un JWT avec une expiration de 30 minutes. Retourner le token et les infos utilisateur (sans le mot de passe haché)."
+            },
+            {
+              "path": "/auth/me",
+              "instructions": "Extraire l'utilisateur depuis le JWT. Retourner les infos utilisateur (sans le mot de passe haché)."
+            }
+          ]
+        },
+        "tasks": {
+          "endpoints": [
+            {
+              "path": "/tasks (GET)",
+              "instructions": "Récupérer les tâches de l'utilisateur courant depuis la base de données. Appliquer les filtres (status, priority) si fournis. Retourner la liste des tâches."
+            },
+            {
+              "path": "/tasks (POST)",
+              "instructions": "Valider les données d'entrée (title obligatoire, status/priority valides). Créer la tâche en base de données avec l'user_id de l'utilisateur courant. Retourner la tâche créée."
+            },
+            {
+              "path": "/tasks/{task_id} (PUT)",
+              "instructions": "Vérifier que la tâche appartient à l'utilisateur courant. Valider les données d'entrée. Mettre à jour la tâche en base de données. Retourner la tâche mise à jour."
+            },
+            {
+              "path": "/tasks/{task_id} (DELETE)",
+              "instructions": "Vérifier que la tâche appartient à l'utilisateur courant. Supprimer la tâche de la base de données. Retourner un message de succès."
+            }
+          ]
+        },
+        "config": "Créer un fichier config.py pour gérer les variables d'environnement (JWT_SECRET_KEY, DATABASE_URL, etc.). Utiliser Pydantic pour valider les configurations."
+      }
+    },
+    "frontend": {
+      "Mactar": {
+        "structure": "Organiser le code en dossiers: pages (LoginPage, RegisterPage, DashboardPage), components (auth, tasks, layout), hooks (useAuth, useTasks), services (api), context (AuthContext). Utiliser React Router pour le routing.",
+        "auth": {
+          "context": "Créer un AuthContext pour gérer l'état d'authentification (user, token). Implémenter les fonctions login, register, logout. Persister le token dans le localStorage.",
+          "pages": [
+            {
+              "name": "LoginPage",
+              "instructions": "Créer un formulaire avec email et mot de passe. Valider les champs (email valide, mot de passe >= 8 caractères). Appeler l'API /auth/login et stocker le token dans le AuthContext. Rediriger vers le dashboard en cas de succès."
+            },
+            {
+              "name": "RegisterPage",
+              "instructions": "Créer un formulaire avec email et mot de passe. Valider les champs (email valide, mot de passe >= 8 caractères). Appeler l'API /auth/register et rediriger vers la page de login en cas de succès."
+            }
+          ]
+        },
+        "tasks": {
+          "components": [
+            {
+              "name": "TaskList",
+              "instructions": "Afficher la liste des tâches avec leurs détails (titre, description, statut, priorité). Utiliser React Query pour récupérer les tâches depuis l'API /tasks. Implémenter le filtrage par statut et priorité."
+            },
+            {
+              "name": "TaskForm",
+              "instructions": "Créer un formulaire pour ajouter/modifier une tâche. Valider les champs (title obligatoire). Appeler l'API /tasks (POST) ou /tasks/{task_id} (PUT) selon le contexte."
+            },
+            {
+              "name": "TaskItem",
+              "instructions": "Afficher les détails d'une tâche avec des boutons pour modifier/supprimer. Implémenter la suppression avec une confirmation modale. Appeler l'API /tasks/{task_id} (DELETE) pour supprimer."
+            }
+          ],
+          "hooks": "Créer un hook useTasks pour encapsuler la logique de gestion des tâches (récupération, création, modification, suppression). Utiliser React Query pour gérer le cache et les états de chargement."
+        },
+        "routing": "Configurer React Router avec des routes protégées (/dashboard) et publiques (/login, /register). Implémenter un ProtectedRoute qui redirige vers /login si l'utilisateur n'est pas authentifié."
+      }
+    }
+  },
+  "constraints": [
+    "Le frontend doit être responsive et fonctionner sur mobile/tablette/desktop",
+    "Les mots de passe doivent être hachés avec bcrypt avant stockage en base de données",
+    "Les tokens JWT doivent expirer après 30 minutes",
+    "Les migrations Alembic doivent être compatibles avec SQLite et PostgreSQL",
+    "Le pipeline CI/CD doit inclure des tests automatisés avant déploiement"
+  ],
+  "estimated_files": {
+    "database": 5,
+    "backend": 15,
+    "frontend": 20
+  }
+}

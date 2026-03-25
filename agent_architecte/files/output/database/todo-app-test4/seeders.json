@@ -1,0 +1,16 @@
+{
+  "seeders": [
+    {
+      "table": "User",
+      "description": "5 utilisateurs réalistes avec noms et emails professionnels",
+      "sql": "INSERT INTO User (email, hashed_password, full_name, created_at, deleted_at) VALUES ('jean.dupont@entreprise.fr', 'hashed_password_test', 'Jean Dupont', '2023-11-10 09:15:22', NULL), ('marie.martin@societe.com', 'hashed_password_test', 'Marie Martin', '2023-11-12 14:30:45', NULL), ('pierre.leroy@corp.fr', 'hashed_password_test', 'Pierre Leroy', '2023-11-15 08:00:00', NULL), ('sophie.bernard@startup.io', 'hashed_password_test', 'Sophie Bernard', '2023-12-01 11:20:10', NULL), ('thomas.robert@tech.com', 'hashed_password_test', 'Thomas Robert', '2023-12-05 16:45:33', '2024-01-20 09:30:00')",
+      "count": 5
+    },
+    {
+      "table": "Task",
+      "description": "5 tâches variées avec priorités et statuts réalistes",
+      "sql": "INSERT INTO Task (title, description, status, priority, due_date, user_id, created_at, updated_at, deleted_at) VALUES ('Finaliser le rapport trimestriel', 'Préparer les slides pour la réunion du comité directeur', 'IN_PROGRESS', 'HIGH', '2024-02-10 17:00:00', 1, '2024-01-15 09:30:00', '2024-01-22 14:15:00', NULL), ('Mettre à jour la documentation API', NULL, 'TODO', 'MEDIUM', '2024-01-30 12:00:00', 2, '2024-01-10 10:00:00', '2024-01-10 10:00:00', NULL), ('Corriger bug #4278', 'Le filtre de recherche ne fonctionne pas sur mobile', 'IN_PROGRESS', 'HIGH', '2024-01-25 18:00:00', 3, '2024-01-12 11:10:00', '2024-01-20 09:45:00', NULL), ('Planifier sprint review', 'Organiser la réunion avec l''équipe produit', 'DONE', 'LOW', '2024-01-18 15:00:00', 1, '2024-01-05 14:20:00', '2024-01-17 16:30:00', NULL), ('Optimiser requêtes SQL', 'Réduire le temps de réponse des requêtes lentes', 'TODO', 'MEDIUM', NULL, 3, '2024-01-18 08:30:00', '2024-01-18 08:30:00', '2024-01-22 10:00:00')",
+      "count": 5
+    }
+  ]
+}

@@ -1,0 +1,262 @@
+{
+  "project": {
+    "name": "todo-app-test5",
+    "description": "Application de gestion de tâches avec authentification JWT, filtres par statut/priorité, et pipeline CI/CD.",
+    "complexity": "medium"
+  },
+  "modules": [
+    "auth",
+    "tasks",
+    "dashboard"
+  ],
+  "user_journeys": [
+    {
+      "name": "Inscription et connexion",
+      "steps": [
+        "L'utilisateur accède à la page de connexion/inscription",
+        "Il remplit le formulaire (email + mot de passe)",
+        "Le backend valide les données et retourne un JWT",
+        "Le frontend stocke le JWT et redirige vers le dashboard"
+      ]
+    },
+    {
+      "name": "Gestion des tâches",
+      "steps": [
+        "L'utilisateur crée une tâche via le formulaire",
+        "Le backend enregistre la tâche en base de données",
+        "La tâche apparaît dans la liste avec les filtres appliqués",
+        "L'utilisateur peut modifier/supprimer la tâche"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id",
+        "email",
+        "hashed_password",
+        "is_active",
+        "created_at"
+      ],
+      "relations": []
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "due_date",
+        "created_at",
+        "updated_at",
+        "user_id"
+      ],
+      "relations": [
+        "Many-to-One avec User"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "description": "Inscription utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Connexion utilisateur (retourne JWT)",
+      "auth_required": false
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "description": "Liste des tâches avec filtres (status, priority)",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "description": "Créer une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{id}",
+      "description": "Modifier une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{id}",
+      "description": "Supprimer une tâche",
+      "auth_required": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Vite + Material-UI",
+    "backend": "FastAPI + Python 3.10 + SQLAlchemy",
+    "database": {
+      "dev": "SQLite",
+      "prod": "PostgreSQL 15"
+    },
+    "auth": "JWT (python-jose + passlib bcrypt)",
+    "cache": "None",
+    "message_broker": "None",
+    "container": "Docker + Docker Compose",
+    "cloud": "Déploiement via CI/CD (GitHub Actions/GitLab CI)"
+  },
+  "dev_instructions": {
+    "database": {
+      "models": [
+        {
+          "name": "User",
+          "file": "app/models/user.py",
+          "code": "from sqlalchemy import Column, Integer, String, Boolean, DateTime\nfrom sqlalchemy.sql import func\nfrom app.database import Base\n\nclass User(Base):\n    __tablename__ = 'users'\n    id = Column(Integer, primary_key=True, index=True)\n    email = Column(String(255), unique=True, index=True)\n    hashed_password = Column(String(255))\n    is_active = Column(Boolean, default=True)\n    created_at = Column(DateTime(timezone=True), server_default=func.now())\n    tasks = relationship('Task', back_populates='owner')"
+        },
+        {
+          "name": "Task",
+          "file": "app/models/task.py",
+          "code": "from sqlalchemy import Column, Integer, String, Text, Enum, DateTime, ForeignKey\nfrom sqlalchemy.sql import func\nfrom sqlalchemy.orm import relationship\nfrom app.database import Base\nimport enum\n\nclass StatusEnum(enum.Enum):\n    todo = 'todo'\n    in_progress = 'in_progress'\n    done = 'done'\n\nclass PriorityEnum(enum.Enum):\n    low = 'low'\n    medium = 'medium'\n    high = 'high'\n\nclass Task(Base):\n    __tablename__ = 'tasks'\n    id = Column(Integer, primary_key=True, index=True)\n    title = Column(String(255))\n    description = Column(Text, nullable=True)\n    status = Column(Enum(StatusEnum), default=StatusEnum.todo)\n    priority = Column(Enum(PriorityEnum), default=PriorityEnum.medium)\n    due_date = Column(DateTime(timezone=True), nullable=True)\n    created_at = Column(DateTime(timezone=True), server_default=func.now())\n    updated_at = Column(DateTime(timezone=True), onupdate=func.now(), server_default=func.now())\n    user_id = Column(Integer, ForeignKey('users.id'))\n    owner = relationship('User', back_populates='tasks')"
+        }
+      ],
+      "migrations": "1. Initialiser Alembic: `alembic init migrations`. 2. Configurer `alembic.ini` et `env.py` pour SQLAlchemy. 3. Créer une migration initiale: `alembic revision --autogenerate -m 'Initial migration'`. 4. Appliquer la migration: `alembic upgrade head`.",
+      "database_config": {
+        "dev": "SQLite (fichier `./dev.db`)",
+        "prod": "PostgreSQL avec variables d'environnement (ex: `DATABASE_URL=postgresql://user:password@host:port/dbname`)"
+      }
+    },
+    "backend": {
+      "structure": {
+        "directories": [
+          "app/",
+          "app/routers/ (auth.py, tasks.py)",
+          "app/services/ (users_service.py, tasks_service.py, auth_service.py)",
+          "app/models/ (user.py, task.py)",
+          "app/schemas/ (Pydantic models)",
+          "app/database.py (SQLAlchemy setup)",
+          "app/config.py (configuration)",
+          "app/main.py (entrypoint FastAPI)"
+        ],
+        "files": [
+          {
+            "name": "app/main.py",
+            "content": "from fastapi import FastAPI\nfrom app.routers import auth, tasks\nfrom app.database import engine, Base\n\nBase.metadata.create_all(bind=engine)\n\napp = FastAPI()\n\napp.include_router(auth.router, prefix='/auth', tags=['auth'])\napp.include_router(tasks.router, prefix='/tasks', tags=['tasks'])"
+          },
+          {
+            "name": "app/routers/auth.py",
+            "content": "from fastapi import APIRouter, Depends, HTTPException\nfrom fastapi.security import OAuth2PasswordRequestForm\nfrom app.services.auth_service import authenticate_user, create_access_token\nfrom app.schemas.token import Token\n\nrouter = APIRouter()\n\n@router.post('/register', response_model=Token)\nasync def register(form_data: OAuth2PasswordRequestForm = Depends()):\n    # Logique d'inscription\n    pass\n\n@router.post('/login', response_model=Token)\nasync def login(form_data: OAuth2PasswordRequestForm = Depends()):\n    user = authenticate_user(form_data.username, form_data.password)\n    if not user:\n        raise HTTPException(status_code=400, detail='Incorrect email or password')\n    access_token = create_access_token(data={'sub': user.email})\n    return {'access_token': access_token, 'token_type': 'bearer'}"
+          },
+          {
+            "name": "app/services/auth_service.py",
+            "content": "from jose import JWTError, jwt\nfrom passlib.context import CryptContext\nfrom datetime import datetime, timedelta\nfrom app.config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES\n\npwd_context = CryptContext(schemes=['bcrypt'], deprecated='auto')\n\ndef verify_password(plain_password, hashed_password):\n    return pwd_context.verify(plain_password, hashed_password)\n\ndef get_password_hash(password):\n    return pwd_context.hash(password)\n\ndef create_access_token(data: dict):\n    to_encode = data.copy()\n    expire = datetime.utcnow() + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)\n    to_encode.update({'exp': expire})\n    encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)\n    return encoded_jwt"
+          }
+        ]
+      },
+      "auth": {
+        "jwt": {
+          "secret_key": "Générer une clé secrète forte (ex: `openssl rand -hex 32`)",
+          "algorithm": "HS256",
+          "access_token_expire_minutes": 15,
+          "refresh_token_expire_days": 7
+        },
+        "dependencies": {
+          "get_current_user": "Créer une dépendance FastAPI pour extraire et valider le JWT depuis l'en-tête `Authorization`."
+        }
+      },
+      "tasks": {
+        "filters": "Implémenter les filtres via query parameters (ex: `GET /tasks?status=todo&priority=high`). Utiliser SQLAlchemy pour construire les requêtes dynamiquement."
+      }
+    },
+    "frontend": {
+      "structure": {
+        "directories": [
+          "src/",
+          "src/pages/ (LoginPage.tsx, RegisterPage.tsx, DashboardPage.tsx)",
+          "src/components/ (TaskList.tsx, TaskForm.tsx, TaskFilters.tsx, AuthLayout.tsx, DashboardLayout.tsx)",
+          "src/context/ (AuthContext.tsx, TasksContext.tsx)",
+          "src/hooks/ (useAuth.ts, useTasks.ts)",
+          "src/services/ (api.ts pour les appels API)",
+          "src/types/ (TypeScript interfaces)"
+        ],
+        "files": [
+          {
+            "name": "src/services/api.ts",
+            "content": "import axios from 'axios';\n\nconst api = axios.create({\n    baseURL: import.meta.env.VITE_API_URL,\n    withCredentials: true,\n});\n\napi.interceptors.request.use((config) => {\n    const token = localStorage.getItem('token');\n    if (token) {\n        config.headers.Authorization = `Bearer ${token}`;\n    }\n    return config;\n});\n\nexport const login = (email: string, password: string) =>\n    api.post('/auth/login', { email, password });\n\nexport const getTasks = (filters: { status?: string; priority?: string }) =>\n    api.get('/tasks', { params: filters });"
+          },
+          {
+            "name": "src/context/AuthContext.tsx",
+            "content": "import React, { createContext, useReducer, useEffect } from 'react';\nimport { login, register } from '../services/api';\n\ninterface AuthState {\n    isAuthenticated: boolean;\n    user: { email: string } | null;\n    token: string | null;\n}\n\ntype AuthAction =\n    | { type: 'LOGIN'; payload: { user: { email: string }; token: string } }\n    | { type: 'LOGOUT' };\n\nconst initialState: AuthState = {\n    isAuthenticated: false,\n    user: null,\n    token: null,\n};\n\nconst authReducer = (state: AuthState, action: AuthAction): AuthState => {\n    switch (action.type) {\n        case 'LOGIN':\n            return {\n                ...state,\n                isAuthenticated: true,\n                user: action.payload.user,\n                token: action.payload.token,\n            };\n        case 'LOGOUT':\n            return initialState;\n        default:\n            return state;\n    }\n};\n\nexport const AuthContext = createContext<{\n    state: AuthState;\n    dispatch: React.Dispatch<AuthAction>;\n}>({ state: initialState, dispatch: () => null });\n\nexport const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {\n    const [state, dispatch] = useReducer(authReducer, initialState);\n\n    useEffect(() => {\n        const token = localStorage.getItem('token');\n        if (token) {\n            dispatch({\n                type: 'LOGIN',\n                payload: { user: { email: '' }, token },\n            });\n        }\n    }, []);\n\n    return (\n        <AuthContext.Provider value={{ state, dispatch }}>\n            {children}\n        </AuthContext.Provider>\n    );\n};"
+          }
+        ]
+      },
+      "routing": {
+        "file": "src/App.tsx",
+        "content": "import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';\nimport { AuthProvider } from './context/AuthContext';\nimport LoginPage from './pages/LoginPage';\nimport RegisterPage from './pages/RegisterPage';\nimport DashboardPage from './pages/DashboardPage';\nimport PrivateRoute from './components/PrivateRoute';\n\nfunction App() {\n    return (\n        <AuthProvider>\n            <Router>\n                <Routes>\n                    <Route path='/login' element={<LoginPage />} />\n                    <Route path='/register' element={<RegisterPage />} />\n                    <Route\n                        path='/'\n                        element={(\n                            <PrivateRoute>\n                                <DashboardPage />\n                            </PrivateRoute>\n                        )}\n                    />\n                </Routes>\n            </Router>\n        </AuthProvider>\n    );\n}"
+      },
+      "components": {
+        "TaskList": {
+          "description": "Composant affichant les tâches sous forme de liste ou de cartes. Permet le filtrage par statut/priorité et la pagination.",
+          "props": {
+            "tasks": "Array<{ id: number; title: string; status: string; priority: string }>",
+            "onDelete": "(id: number) => void",
+            "onUpdate": "(task: Task) => void"
+          }
+        },
+        "TaskForm": {
+          "description": "Formulaire modal ou intégré pour créer/modifier une tâche. Utilise Formik + Yup pour la validation.",
+          "fields": [
+            {
+              "name": "title",
+              "type": "text",
+              "required": true
+            },
+            {
+              "name": "description",
+              "type": "textarea",
+              "required": false
+            },
+            {
+              "name": "status",
+              "type": "select",
+              "options": [
+                "todo",
+                "in_progress",
+                "done"
+              ]
+            },
+            {
+              "name": "priority",
+              "type": "select",
+              "options": [
+                "low",
+                "medium",
+                "high"
+              ]
+            },
+            {
+              "name": "due_date",
+              "type": "date",
+              "required": false
+            }
+          ]
+        }
+      }
+    }
+  },
+  "constraints": [
+    "Compatibilité SQLite (dev) et PostgreSQL (prod) via SQLAlchemy.",
+    "Authentification obligatoire pour toutes les routes protégées (sauf /auth/register et /auth/login).",
+    "Stockage du JWT dans un cookie HttpOnly pour éviter les attaques XSS.",
+    "Déploiement automatisé via CI/CD (tests obligatoires avant déploiement)."
+  ],
+  "estimated_files": {
+    "database": 3,
+    "backend": 12,
+    "frontend": 15
+  }
+}

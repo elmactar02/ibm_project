@@ -1,0 +1,65 @@
+# ============================================================
+# repo_config.yaml — Configuration des dépôts de packages
+# ============================================================
+# Activez ce fichier si le client possède des packages dans
+# un dépôt privé (Artifactory, Nexus, AWS CodeArtifact, etc.)
+#
+# Si "enabled: false", l'agent installe tout depuis PyPI.
+# ============================================================
+
+private_repo:
+  enabled: false                  # true pour activer le dépôt privé
+
+  # Type de dépôt : "artifactory" | "nexus" | "codeartifact" | "generic_pypi"
+  type: "artifactory"
+
+  # URL du dépôt PyPI privé (index simple PEP 503)
+  # Artifactory : https://<host>/artifactory/api/pypi/<repo-name>/simple
+  # Nexus       : https://<host>/repository/<repo-name>/simple
+  index_url: "https://artifactory.example.com/artifactory/api/pypi/pypi-local/simple"
+
+  # Conserver aussi PyPI public comme source de fallback
+  # Si true  → --extra-index-url (privé prioritaire, PyPI en fallback)
+  # Si false → --index-url (privé uniquement, PyPI ignoré)
+  fallback_to_pypi: true
+
+  # Authentification
+  auth:
+    # Méthode : "token" | "basic" | "env"
+    #   token : API token Artifactory (header Authorization: Bearer <token>)
+    #   basic : login/password (intégré dans l'URL)
+    #   env   : lire les credentials depuis les variables d'environnement
+    method: "env"
+
+    # Pour method: "env" — noms des variables d'environnement à lire
+    username_env: "REPO_USERNAME"   # ex: export REPO_USERNAME="john.doe"
+    password_env: "REPO_PASSWORD"   # ex: export REPO_PASSWORD="my_token"
+
+    # Pour method: "token" (non recommandé en production — préférez "env")
+    token: ""
+
+    # Pour method: "basic" (non recommandé — le mot de passe apparaît dans les logs)
+    username: ""
+    password: ""
+
+  # Options pip supplémentaires (liste de strings)
+  # Ex: ["--trusted-host", "artifactory.example.com", "--no-cache-dir"]
+  extra_pip_options: []
+
+  # Vérification SSL du certificat du dépôt
+  verify_ssl: true
+  # Chemin vers un certificat CA custom (laisser vide si non nécessaire)
+  ca_bundle: ""
+
+# Packages qui DOIVENT provenir du dépôt privé
+# (non disponibles sur PyPI public ou version interne différente)
+# Format : nom du package tel qu'utilisé dans `pip install`
+private_packages:
+  - "acme-ui-components"          # Exemple : bibliothèque de composants interne
+  # - "acme-auth-client>=2.1.0"
+  # - "internal-utils"
+
+# Packages standards supplémentaires toujours installés (depuis PyPI ou privé)
+extra_packages: []
+  # - "pandas>=2.0"
+  # - "plotly>=5.0"

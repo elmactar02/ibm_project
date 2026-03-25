@@ -1,0 +1,198 @@
+{
+  "database": {
+    "technology": "PostgreSQL 15",
+    "models": [
+      {
+        "name": "User",
+        "fields": {
+          "id": "Integer (Primary Key)",
+          "email": "String (Unique, 255 chars)",
+          "hashed_password": "String (255 chars)",
+          "created_at": "DateTime (default: now)"
+        },
+        "relations": []
+      },
+      {
+        "name": "Task",
+        "fields": {
+          "id": "Integer (Primary Key)",
+          "title": "String (255 chars)",
+          "description": "Text (nullable)",
+          "status": "Enum('todo', 'in_progress', 'done')",
+          "priority": "Enum('low', 'medium', 'high')",
+          "created_at": "DateTime (default: now)",
+          "updated_at": "DateTime (on update)",
+          "user_id": "Integer (Foreign Key: User.id)"
+        },
+        "relations": [
+          "Many-to-One avec User"
+        ]
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX idx_task_user_id ON task(user_id)",
+      "CREATE INDEX idx_task_status ON task(status)",
+      "CREATE INDEX idx_task_priority ON task(priority)"
+    ]
+  },
+  "backend": {
+    "framework": "FastAPI",
+    "auth": {
+      "approach": "JWT avec python-jose + passlib (bcrypt pour hashage)",
+      "endpoints": [
+        {
+          "path": "/register",
+          "method": "POST",
+          "description": "Inscription utilisateur"
+        },
+        {
+          "path": "/login",
+          "method": "POST",
+          "description": "Connexion avec email/mot de passe"
+        },
+        {
+          "path": "/me",
+          "method": "GET",
+          "description": "R\u00e9cup\u00e9rer info utilisateur (auth required)"
+        }
+      ]
+    },
+    "task_endpoints": [
+      {
+        "path": "/tasks",
+        "method": "GET",
+        "description": "Lister t\u00e2ches avec filtres (status/priority)",
+        "auth_required": true
+      },
+      {
+        "path": "/tasks",
+        "method": "POST",
+        "description": "Cr\u00e9er une t\u00e2che",
+        "auth_required": true
+      },
+      {
+        "path": "/tasks/{id}",
+        "method": "PUT",
+        "description": "Modifier une t\u00e2che",
+        "auth_required": true
+      },
+      {
+        "path": "/tasks/{id}",
+        "method": "DELETE",
+        "description": "Supprimer une t\u00e2che",
+        "auth_required": true
+      }
+    ],
+    "structure": {
+      "routers": [
+        "auth.py",
+        "tasks.py"
+      ],
+      "models": [
+        "user.py",
+        "task.py"
+      ],
+      "schemas": [
+        "user_schema.py",
+        "task_schema.py"
+      ],
+      "utils": [
+        "jwt.py",
+        "security.py"
+      ]
+    }
+  },
+  "frontend": {
+    "framework": "React 18 + TypeScript",
+    "components": [
+      {
+        "name": "AuthModule",
+        "pages": [
+          "LoginPage",
+          "RegisterPage"
+        ],
+        "components": [
+          "AuthForm",
+          "AuthLayout"
+        ]
+      },
+      {
+        "name": "DashboardModule",
+        "pages": [
+          "TaskDashboard"
+        ],
+        "components": [
+          "TaskList",
+          "TaskFilter",
+          "TaskForm",
+          "TaskItem",
+          "Navbar"
+        ]
+      }
+    ],
+    "routing": {
+      "public": [
+        "/login",
+        "/register"
+      ],
+      "private": [
+        "/dashboard",
+        "/tasks/:id"
+      ]
+    },
+    "state_management": "React Context + useReducer pour les t\u00e2ches",
+    "styling": "TailwindCSS"
+  },
+  "auth": "JWT avec python-jose (algorithme HS256) + passlib bcrypt pour hashage des mots de passe",
+  "cache": "None (Redis peut \u00eatre ajout\u00e9 ult\u00e9rieurement pour les filtres fr\u00e9quents)",
+  "message_broker": "None",
+  "container": {
+    "docker": {
+      "services": [
+        "frontend",
+        "backend",
+        "database"
+      ],
+      "ports": {
+        "frontend": 3000,
+        "backend": 8000,
+        "database": 5432
+      },
+      "volumes": {
+        "database": "postgres_data"
+      }
+    },
+    "docker_compose": {
+      "version": "3.8",
+      "services": {
+        "frontend": {
+          "build": "./frontend",
+          "ports": [
+            "3000:3000"
+          ]
+        },
+        "backend": {
+          "build": "./backend",
+          "ports": [
+            "8000:8000"
+          ],
+          "depends_on": [
+            "database"
+          ]
+        },
+        "database": {
+          "image": "postgres:15",
+          "environment": [
+            "POSTGRES_USER",
+            "POSTGRES_PASSWORD",
+            "POSTGRES_DB"
+          ],
+          "volumes": [
+            "postgres_data:/var/lib/postgresql/data"
+          ]
+        }
+      }
+    }
+  },
+  "cloud": "D\u00e9ploiement local pour d\u00e9veloppement, cible: AWS ECS ou Vercel (frontend) + Railway (backend)"
+}

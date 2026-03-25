@@ -1,0 +1,16 @@
+{
+  "seeders": [
+    {
+      "table": "users",
+      "description": "5 utilisateurs actifs avec emails professionnels et personnels",
+      "sql": "INSERT INTO users (email, hashed_password, is_active, created_at, deleted_at) VALUES ('julien.dupont@entreprise.fr', 'hashed_password_test', 1, '2023-11-10 08:30:00', NULL), ('marie.martin@startup.io', 'hashed_password_test', 1, '2023-11-12 14:15:00', NULL), ('pierre.lefevre@gmail.com', 'hashed_password_test', 1, '2023-11-15 09:45:00', NULL), ('claire.bernard@consulting.pro', 'hashed_password_test', 0, '2023-11-20 16:20:00', NULL), ('thomas.robert@dev.team', 'hashed_password_test', 1, '2023-12-01 11:00:00', NULL)",
+      "count": 5
+    },
+    {
+      "table": "tasks",
+      "description": "5 tâches variées avec statuts et priorités différents pour 3 utilisateurs",
+      "sql": "INSERT INTO tasks (title, description, status, priority, due_date, created_at, updated_at, user_id, deleted_at) VALUES ('Finaliser le rapport trimestriel', 'Préparer les slides et données financières pour la réunion du 25/01', 'IN_PROGRESS', 'HIGH', '2024-01-24 18:00:00', '2024-01-10 09:15:00', '2024-01-18 14:30:00', 1, NULL), ('Corriger bug API paiement', 'Le endpoint /v1/payments échoue avec code 500 en production', 'TODO', 'HIGH', '2024-01-20 12:00:00', '2024-01-12 10:20:00', '2024-01-12 10:20:00', 5, NULL), ('Mettre à jour documentation', 'Ajouter les nouveaux endpoints et exemples d''utilisation', 'TODO', 'MEDIUM', NULL, '2024-01-14 11:00:00', '2024-01-14 11:00:00', 2, NULL), ('Planifier rétrospective sprint', 'Envoyer invitation à l''équipe avec ordre du jour', 'DONE', 'LOW', '2024-01-15 15:00:00', '2024-01-05 16:45:00', '2024-01-10 09:00:00', 1, NULL), ('Revoir architecture microservices', 'Analyser les goulots d''étranglement et proposer des optimisations', 'IN_PROGRESS', 'MEDIUM', '2024-02-01 00:00:00', '2024-01-08 13:30:00', '2024-01-17 16:20:00', 5, NULL)",
+      "count": 5
+    }
+  ]
+}

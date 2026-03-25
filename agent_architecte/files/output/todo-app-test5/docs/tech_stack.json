@@ -1,0 +1,142 @@
+{
+  "database": {
+    "dev": "SQLite avec SQLAlchemy ORM, migrations g\u00e9r\u00e9es par Alembic",
+    "prod": "PostgreSQL 15 avec SQLAlchemy ORM, pool de connexions (asyncpg)",
+    "models": [
+      {
+        "name": "User",
+        "fields": {
+          "id": "Integer (Primary Key)",
+          "email": "String (Unique, 255 chars)",
+          "hashed_password": "String (255 chars)",
+          "is_active": "Boolean (Default: True)",
+          "created_at": "DateTime (Default: now)"
+        },
+        "relations": []
+      },
+      {
+        "name": "Task",
+        "fields": {
+          "id": "Integer (Primary Key)",
+          "title": "String (255 chars)",
+          "description": "Text (Nullable)",
+          "status": "Enum ('todo', 'in_progress', 'done')",
+          "priority": "Enum ('low', 'medium', 'high')",
+          "due_date": "DateTime (Nullable)",
+          "created_at": "DateTime (Default: now)",
+          "updated_at": "DateTime (Default: now, on update)",
+          "user_id": "Integer (Foreign Key: User.id)"
+        },
+        "relations": [
+          "Many-to-One avec User"
+        ]
+      }
+    ],
+    "instructions": "1. Cr\u00e9er les mod\u00e8les SQLAlchemy dans `app/models/`. 2. Configurer Alembic pour les migrations. 3. Assurer la compatibilit\u00e9 SQLite (dev) et PostgreSQL (prod) via SQLAlchemy. 4. Impl\u00e9menter les relations avec `back_populates` pour les requ\u00eates optimis\u00e9es."
+  },
+  "backend": {
+    "framework": "FastAPI avec structure modulaire (routers/services)",
+    "auth": "JWT avec python-jose (JWT) + passlib (bcrypt pour le hachage)",
+    "endpoints": [
+      {
+        "path": "/auth/register",
+        "method": "POST",
+        "description": "Inscription utilisateur (email + mot de passe)",
+        "auth_required": false
+      },
+      {
+        "path": "/auth/login",
+        "method": "POST",
+        "description": "Connexion utilisateur (retourne JWT)",
+        "auth_required": false
+      },
+      {
+        "path": "/tasks",
+        "method": "GET",
+        "description": "Liste des t\u00e2ches avec filtres (status, priority)",
+        "auth_required": true
+      },
+      {
+        "path": "/tasks",
+        "method": "POST",
+        "description": "Cr\u00e9er une t\u00e2che",
+        "auth_required": true
+      },
+      {
+        "path": "/tasks/{id}",
+        "method": "PUT",
+        "description": "Modifier une t\u00e2che",
+        "auth_required": true
+      },
+      {
+        "path": "/tasks/{id}",
+        "method": "DELETE",
+        "description": "Supprimer une t\u00e2che",
+        "auth_required": true
+      }
+    ],
+    "instructions": "1. Structurer le backend en routers (`auth.py`, `tasks.py`) et services (`users_service.py`, `tasks_service.py`). 2. Impl\u00e9menter l'authentification JWT avec d\u00e9pendance FastAPI (`get_current_user`). 3. Valider les donn\u00e9es avec Pydantic. 4. Configurer CORS pour le frontend. 5. G\u00e9rer les erreurs avec des exceptions personnalis\u00e9es (ex: `HTTPException`)."
+  },
+  "frontend": {
+    "framework": "React 18 + TypeScript + Vite",
+    "ui_library": "Material-UI (MUI) pour les composants",
+    "state_management": "React Context + useReducer pour l'\u00e9tat global (auth/tasks)",
+    "routing": "React Router v6 pour la navigation",
+    "pages": [
+      {
+        "name": "LoginPage",
+        "path": "/login",
+        "components": [
+          "LoginForm",
+          "AuthLayout"
+        ]
+      },
+      {
+        "name": "RegisterPage",
+        "path": "/register",
+        "components": [
+          "RegisterForm",
+          "AuthLayout"
+        ]
+      },
+      {
+        "name": "DashboardPage",
+        "path": "/",
+        "components": [
+          "TaskList",
+          "TaskFilters",
+          "TaskForm",
+          "DashboardLayout"
+        ]
+      }
+    ],
+    "components": [
+      {
+        "name": "TaskList",
+        "description": "Affiche la liste des t\u00e2ches avec filtres (status/priority) et pagination"
+      },
+      {
+        "name": "TaskForm",
+        "description": "Formulaire pour cr\u00e9er/modifier une t\u00e2che (modal ou page d\u00e9di\u00e9e)"
+      },
+      {
+        "name": "TaskFilters",
+        "description": "Composant de filtres pour status/priority avec boutons radio ou dropdowns"
+      },
+      {
+        "name": "AuthLayout",
+        "description": "Layout commun pour les pages d'authentification"
+      },
+      {
+        "name": "DashboardLayout",
+        "description": "Layout avec sidebar pour la navigation entre les sections"
+      }
+    ],
+    "instructions": "1. Cr\u00e9er les pages et composants avec TypeScript. 2. Impl\u00e9menter le routing avec React Router. 3. G\u00e9rer l'\u00e9tat global pour l'authentification (JWT) et les t\u00e2ches. 4. Stocker le JWT dans un cookie s\u00e9curis\u00e9 (HttpOnly). 5. Impl\u00e9menter les appels API avec Axios (intercepteur pour ajouter le JWT). 6. Ajouter des tests unitaires avec Jest + React Testing Library."
+  },
+  "auth": "JWT (Access Token: 15 min, Refresh Token: 7 jours) avec python-jose pour la g\u00e9n\u00e9ration/validation et passlib pour le hachage des mots de passe (bcrypt)",
+  "cache": "None (peut \u00eatre ajout\u00e9 ult\u00e9rieurement avec Redis pour les t\u00e2ches fr\u00e9quentes)",
+  "message_broker": "None",
+  "container": "Docker + Docker Compose pour le d\u00e9veloppement et la production. Images multi-stage pour le backend (FastAPI) et le frontend (Nginx).",
+  "cloud": "D\u00e9ploiement local pour le d\u00e9veloppement. CI/CD avec GitHub Actions/GitLab CI pour d\u00e9ployer sur un h\u00e9bergeur cloud (ex: AWS ECS, Render, ou Heroku)."
+}

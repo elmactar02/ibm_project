@@ -1,0 +1,177 @@
+{
+  "database": {
+    "dev": "SQLite avec SQLAlchemy (fichier todo_dev.db)",
+    "prod": "PostgreSQL 15 avec SQLAlchemy (sch\u00e9ma 'todo')",
+    "models": [
+      {
+        "name": "User",
+        "fields": {
+          "id": "Integer (Primary Key)",
+          "email": "String(255) (Unique, Index)",
+          "hashed_password": "String(255)",
+          "created_at": "DateTime (default=datetime.utcnow)"
+        },
+        "relations": [
+          "One-to-Many avec Task"
+        ]
+      },
+      {
+        "name": "Task",
+        "fields": {
+          "id": "Integer (Primary Key)",
+          "title": "String(255)",
+          "description": "Text (nullable)",
+          "status": "Enum('todo', 'in_progress', 'done')",
+          "priority": "Enum('low', 'medium', 'high')",
+          "created_at": "DateTime (default=datetime.utcnow)",
+          "updated_at": "DateTime (onupdate=datetime.utcnow)",
+          "user_id": "Integer (ForeignKey('user.id'))"
+        },
+        "relations": [
+          "Many-to-One avec User"
+        ]
+      }
+    ],
+    "migrations": "Alembic pour g\u00e9rer les migrations entre SQLite et PostgreSQL"
+  },
+  "backend": {
+    "framework": "FastAPI avec structure modulaire",
+    "routers": [
+      {
+        "path": "/auth",
+        "endpoints": [
+          {
+            "method": "POST",
+            "path": "/register",
+            "description": "Inscription utilisateur"
+          },
+          {
+            "method": "POST",
+            "path": "/login",
+            "description": "Connexion avec JWT"
+          },
+          {
+            "method": "GET",
+            "path": "/me",
+            "description": "R\u00e9cup\u00e9rer info utilisateur courant"
+          }
+        ]
+      },
+      {
+        "path": "/tasks",
+        "endpoints": [
+          {
+            "method": "GET",
+            "path": "/",
+            "description": "Lister t\u00e2ches avec filtres (status, priority)"
+          },
+          {
+            "method": "POST",
+            "path": "/",
+            "description": "Cr\u00e9er une t\u00e2che"
+          },
+          {
+            "method": "PUT",
+            "path": "/{task_id}",
+            "description": "Modifier une t\u00e2che"
+          },
+          {
+            "method": "DELETE",
+            "path": "/{task_id}",
+            "description": "Supprimer une t\u00e2che"
+          }
+        ]
+      }
+    ],
+    "auth": {
+      "jwt": {
+        "secret_key": "Variable d'environnement (JWT_SECRET_KEY)",
+        "algorithm": "HS256",
+        "expire_minutes": 30,
+        "library": "python-jose[cryptography] + passlib[bcrypt]"
+      },
+      "middleware": "FastAPI OAuth2PasswordBearer pour prot\u00e9ger les routes"
+    },
+    "database_config": {
+      "dev": "SQLite (fichier local)",
+      "prod": "PostgreSQL (URL de connexion via variable d'environnement)"
+    }
+  },
+  "frontend": {
+    "framework": "React 18 + TypeScript",
+    "libraries": [
+      "React Router v6 pour le routing",
+      "Axios pour les appels API",
+      "React Query pour la gestion des \u00e9tats serveur",
+      "TailwindCSS pour le styling",
+      "React Hook Form pour les formulaires"
+    ],
+    "pages": [
+      {
+        "name": "LoginPage",
+        "path": "/login",
+        "components": [
+          "LoginForm",
+          "AuthLayout"
+        ]
+      },
+      {
+        "name": "RegisterPage",
+        "path": "/register",
+        "components": [
+          "RegisterForm",
+          "AuthLayout"
+        ]
+      },
+      {
+        "name": "DashboardPage",
+        "path": "/",
+        "components": [
+          "DashboardLayout",
+          "TaskList",
+          "TaskFilters",
+          "TaskForm",
+          "TaskItem"
+        ]
+      }
+    ],
+    "state_management": {
+      "auth": "Contexte React (AuthContext) pour g\u00e9rer l'\u00e9tat d'authentification",
+      "tasks": "React Query pour g\u00e9rer les donn\u00e9es des t\u00e2ches (cache, synchronisation)"
+    },
+    "routing": {
+      "protected_routes": [
+        "/"
+      ],
+      "public_routes": [
+        "/login",
+        "/register"
+      ]
+    }
+  },
+  "auth": "JWT avec python-jose + passlib bcrypt pour le hachage des mots de passe",
+  "cache": "none (peut \u00eatre ajout\u00e9 ult\u00e9rieurement avec Redis si besoin)",
+  "message_broker": "none",
+  "container": {
+    "docker": {
+      "frontend": "Node 18 (multi-stage build)",
+      "backend": "Python 3.10 (avec Poetry pour la gestion des d\u00e9pendances)",
+      "database": "PostgreSQL 15 (image officielle)"
+    },
+    "docker_compose": {
+      "services": [
+        "frontend",
+        "backend",
+        "postgres"
+      ],
+      "volumes": [
+        "postgres_data",
+        "backend_data"
+      ],
+      "networks": [
+        "todo_network"
+      ]
+    }
+  },
+  "cloud": "D\u00e9ploiement local pour le d\u00e9veloppement, cible production: Heroku ou AWS ECS"
+}

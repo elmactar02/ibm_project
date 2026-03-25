@@ -1,0 +1,127 @@
+{
+  "project": {
+    "name": "todo-app-test6",
+    "description": "Application full-stack de gestion de tâches avec authentification JWT, filtres avancés et pipeline CI/CD.",
+    "complexity": "medium"
+  },
+  "modules": [
+    "auth",
+    "tasks",
+    "dashboard"
+  ],
+  "user_journeys": [
+    {
+      "name": "Inscription et première connexion",
+      "steps": [
+        "L'utilisateur accède à la page d'inscription (/register).",
+        "Il remplit le formulaire (email + mot de passe) et soumet.",
+        "Le système crée un compte et redirige vers le tableau de bord.",
+        "L'utilisateur est automatiquement connecté avec un token JWT."
+      ]
+    },
+    {
+      "name": "Gestion des tâches",
+      "steps": [
+        "L'utilisateur accède au tableau de bord (/).",
+        "Il crée une tâche via le formulaire modal (titre, description, priorité, date d'échéance).",
+        "La tâche apparaît dans la liste avec les autres tâches.",
+        "Il filtre les tâches par statut (ex: 'done') ou priorité (ex: 'high').",
+        "Il modifie ou supprime une tâche existante."
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id",
+        "email",
+        "hashed_password",
+        "created_at"
+      ],
+      "relations": []
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "due_date",
+        "user_id",
+        "created_at",
+        "updated_at"
+      ],
+      "relations": [
+        "Many-to-One avec User (user_id)"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "description": "Inscription utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Connexion utilisateur (JWT)",
+      "auth_required": false
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "description": "Liste des tâches avec filtres (statut/priorité)",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "description": "Créer une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{task_id}",
+      "description": "Modifier une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{task_id}",
+      "description": "Supprimer une tâche",
+      "auth_required": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Vite + Tailwind CSS + SWR + React Router v6",
+    "backend": "FastAPI + Python 3.10 + SQLAlchemy + Pydantic + python-jose + passlib",
+    "database": "PostgreSQL 15 + Alembic (migrations)",
+    "auth": "JWT (HS256) avec stockage dans localStorage (frontend) et validation via middleware (backend)",
+    "cache": "SWR (frontend only)",
+    "message_broker": "none",
+    "container": "Docker + Docker Compose (développement) + images multi-stage (production)",
+    "cloud": "Render ou Railway (backend) + Supabase/Neon (PostgreSQL managé)"
+  },
+  "dev_instructions": {
+    "database": "Oumeyma: \n1. Crée les modèles SQLAlchemy pour `User` et `Task` avec les champs et relations décrits dans ---TECHSTACK---. \n2. Utilise Alembic pour générer et appliquer les migrations. \n3. Ajoute des indexes sur `user_id` (Task) et `email` (User). \n4. Implémente les contraintes de validation (ex: email unique, champs obligatoires). \n5. Configure la connexion à PostgreSQL via SQLAlchemy (utilise `DATABASE_URL` depuis les variables d'environnement). \n6. Écrit des tests pour les modèles (ex: création d'un utilisateur, relation User-Task).",
+    "backend": "Akram: \n1. Structure le projet en routers (`auth.py`, `tasks.py`) et services (`auth_service.py`, `tasks_service.py`). \n2. Implémente les endpoints décrits dans ---TECHSTACK--- avec FastAPI. \n3. Utilise Pydantic pour les modèles de requête/réponse (ex: `UserCreate`, `TaskCreate`). \n4. Configure l'authentification JWT : \n   - Utilise `python-jose` pour signer/valider les tokens. \n   - Utilise `passlib` pour hacher les mots de passe (bcrypt). \n   - Crée un middleware pour valider les tokens sur les endpoints protégés. \n5. Implémente la logique métier dans les services : \n   - `AuthService`: inscription, connexion, validation des tokens. \n   - `TasksService`: CRUD tâches, vérification des permissions (l'utilisateur doit être propriétaire de la tâche). \n6. Écrit des tests unitaires avec pytest pour chaque endpoint (incluant les cas d'erreur comme les tokens invalides ou les permissions manquantes). \n7. Configure les dépendances FastAPI pour l'injection de dépendances (ex: `get_db` pour les sessions SQLAlchemy).",
+    "frontend": "Mactar: \n1. Crée les pages suivantes avec React Router v6 : \n   - `LoginPage` (/login) \n   - `RegisterPage` (/register) \n   - `DashboardPage` (/) (protégée par un middleware d'authentification) \n2. Implémente les composants réutilisables : \n   - `TaskList`: Affiche les tâches sous forme de tableau ou de cartes, avec des boutons pour modifier/supprimer. \n   - `TaskFilters`: Dropdowns pour filtrer par statut et priorité (met à jour l'URL avec les query params). \n   - `TaskForm`: Formulaire modal pour créer/modifier une tâche (validation des champs). \n   - `AuthLayout`: Layout commun pour les pages de login/register. \n   - `DashboardLayout`: Layout protégé avec header (nom utilisateur + bouton logout) et sidebar. \n3. Configure le state management : \n   - Utilise React Context pour gérer l'authentification (token + user). \n   - Utilise SWR pour le caching des données des tâches (avec revalidation automatique). \n4. Implémente le routing protégé : \n   - Redirige vers `/login` si l'utilisateur n'est pas authentifié. \n   - Utilise un loader pour pré-charger les données des tâches avant de rendre `DashboardPage`. \n5. Style les composants avec Tailwind CSS et utilise des composants headless (ex: Headless UI) pour les dropdowns/modals. \n6. Écrit des tests pour les composants (ex: tests des formulaires avec React Testing Library)."
+  },
+  "constraints": [
+    "Le token JWT doit expirer après 1 heure.",
+    "Les mots de passe doivent être hachés avec bcrypt avant d'être stockés en base de données.",
+    "Les utilisateurs ne peuvent modifier/supprimer que leurs propres tâches.",
+    "Le frontend doit gérer les erreurs d'authentification (ex: token expiré) en redirigeant vers `/login`.",
+    "Le pipeline CI/CD doit échouer si les tests ne passent pas."
+  ],
+  "estimated_files": {
+    "database": 3,
+    "backend": 8,
+    "frontend": 12
+  }
+}

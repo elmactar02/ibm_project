@@ -1,0 +1,68 @@
+{
+  "indexes": [
+    {
+      "name": "idx_task_user_id",
+      "table": "Task",
+      "columns": [
+        "user_id"
+      ],
+      "reason": "Optimise les requêtes fréquentes filtrant ou joignant sur user_id (ex: liste des tâches d'un utilisateur)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_user_id ON Task(user_id)"
+    },
+    {
+      "name": "idx_task_status",
+      "table": "Task",
+      "columns": [
+        "status"
+      ],
+      "reason": "Améliore les requêtes filtrant par status (ex: compter les tâches 'todo') avec une faible cardinalité",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_status ON Task(status)"
+    },
+    {
+      "name": "idx_task_priority",
+      "table": "Task",
+      "columns": [
+        "priority"
+      ],
+      "reason": "Optimise les requêtes filtrant par priority (ex: tri par priorité) avec une faible cardinalité",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_priority ON Task(priority)"
+    },
+    {
+      "name": "idx_task_user_id_status",
+      "table": "Task",
+      "columns": [
+        "user_id",
+        "status"
+      ],
+      "reason": "Index composite pour les requêtes combinant user_id et status (ex: tâches 'in_progress' d'un utilisateur)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_user_id_status ON Task(user_id, status)"
+    },
+    {
+      "name": "idx_task_deleted_at",
+      "table": "Task",
+      "columns": [
+        "deleted_at"
+      ],
+      "reason": "Accélère les requêtes filtrant les tâches non supprimées (WHERE deleted_at IS NULL) ou supprimées",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_deleted_at ON Task(deleted_at)"
+    },
+    {
+      "name": "idx_user_email",
+      "table": "User",
+      "columns": [
+        "email"
+      ],
+      "reason": "Bien que UNIQUE soit déjà un index, cet index explicite optimise les recherches par email (ex: login)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_user_email ON User(email)"
+    },
+    {
+      "name": "idx_task_created_at",
+      "table": "Task",
+      "columns": [
+        "created_at"
+      ],
+      "reason": "Optimise les requêtes triant ou filtrant par date de création (ex: tâches récentes)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_created_at ON Task(created_at)"
+    }
+  ]
+}

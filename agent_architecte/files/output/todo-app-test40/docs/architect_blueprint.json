@@ -1,0 +1,248 @@
+{
+  "project": {
+    "name": "todo-app-test40",
+    "description": "Application full-stack de gestion de tâches avec authentification JWT et filtres avancés",
+    "complexity": "medium"
+  },
+  "modules": [
+    "auth",
+    "tasks",
+    "dashboard"
+  ],
+  "user_journeys": [
+    {
+      "name": "Inscription et première connexion",
+      "steps": [
+        "L'utilisateur accède à la page de login",
+        "Clique sur 'Créer un compte'",
+        "Remplit le formulaire d'inscription",
+        "Reçoit un email de confirmation (optionnel)",
+        "Se connecte avec ses identifiants",
+        "Est redirigé vers le dashboard"
+      ]
+    },
+    {
+      "name": "Gestion des tâches",
+      "steps": [
+        "L'utilisateur voit ses tâches existantes",
+        "Filtre les tâches par statut ou priorité",
+        "Clique sur 'Nouvelle tâche'",
+        "Remplit le formulaire et sauvegarde",
+        "Modifie une tâche existante",
+        "Supprime une tâche terminée"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id",
+        "email",
+        "hashed_password",
+        "created_at"
+      ],
+      "relations": [
+        "One-to-Many avec Task"
+      ]
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "created_at",
+        "updated_at",
+        "user_id"
+      ],
+      "relations": [
+        "Many-to-One avec User"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "description": "Inscription d'un nouvel utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Connexion avec email/mot de passe (retourne JWT)",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/refresh",
+      "description": "Renouvellement du JWT avec refresh token",
+      "auth_required": true
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "description": "Liste des tâches avec filtres (status, priority, pagination)",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "description": "Création d'une nouvelle tâche",
+      "auth_required": true
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{id}",
+      "description": "Modification d'une tâche existante",
+      "auth_required": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{id}",
+      "description": "Suppression d'une tâche",
+      "auth_required": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Material-UI/TailwindCSS",
+    "backend": "FastAPI (Python 3.10) + SQLAlchemy",
+    "database": {
+      "dev": "SQLite",
+      "prod": "PostgreSQL 15"
+    },
+    "auth": "JWT (python-jose + passlib bcrypt)",
+    "cache": "None (Redis optionnel)",
+    "message_broker": "None",
+    "container": "Docker + Docker Compose",
+    "cloud": "AWS ECS/Render.com (production)"
+  },
+  "dev_instructions": {
+    "database": {
+      "Oumeyma": {
+        "taches": [
+          "Créer les modèles SQLAlchemy pour User et Task dans `models.py`",
+          "Configurer la connexion à SQLite (dev) et PostgreSQL (prod) via `database.py`",
+          "Implémenter les migrations avec Alembic (init + revision pour les modèles)",
+          "Créer les indexes pour les champs user_id et status dans la table Task",
+          "Configurer les variables d'environnement pour les credentials BDD (DB_URL, DB_PASSWORD)"
+        ],
+        "fichiers_a_creer": [
+          "models.py (User, Task avec relations)",
+          "database.py (engine, sessionmaker, Base)",
+          "alembic.ini + migrations/ (pour les migrations)",
+          ".env (variables d'environnement)"
+        ],
+        "exemple_model": {
+          "User": {
+            "id": "Integer, primary_key=True",
+            "email": "String(255), unique=True, index=True",
+            "hashed_password": "String(255)",
+            "created_at": "DateTime, default=datetime.utcnow"
+          },
+          "Task": {
+            "id": "Integer, primary_key=True",
+            "title": "String(255)",
+            "description": "Text, nullable=True",
+            "status": "Enum('todo', 'in_progress', 'done', name='task_status')",
+            "priority": "Enum('low', 'medium', 'high', name='task_priority')",
+            "created_at": "DateTime, default=datetime.utcnow",
+            "updated_at": "DateTime, onupdate=datetime.utcnow",
+            "user_id": "Integer, ForeignKey('user.id')"
+          }
+        }
+      }
+    },
+    "backend": {
+      "Akram": {
+        "taches": [
+          "Configurer FastAPI avec CORS et middleware JWT",
+          "Implémenter les routers auth et tasks avec validation Pydantic",
+          "Créer les services pour la logique métier (auth_service.py, task_service.py)",
+          "Configurer la dépendance à la session BDD (get_db)",
+          "Implémenter les tests unitaires avec pytest (couverture > 80%)",
+          "Configurer les variables d'environnement (JWT_SECRET, DB_URL)"
+        ],
+        "fichiers_a_creer": [
+          "main.py (app FastAPI)",
+          "routers/auth.py (endpoints /auth)",
+          "routers/tasks.py (endpoints /tasks)",
+          "services/auth_service.py (login/register/refresh)",
+          "services/task_service.py (CRUD + filtres)",
+          "schemas.py (Pydantic models)",
+          "config.py (settings Pydantic)",
+          "tests/ (pytest)"
+        ],
+        "exemple_endpoint": {
+          "path": "/tasks",
+          "method": "GET",
+          "params": {
+            "status": "Optional[TaskStatus]",
+            "priority": "Optional[TaskPriority]",
+            "skip": "int = 0",
+            "limit": "int = 100"
+          },
+          "response": {
+            "tasks": "List[TaskSchema]",
+            "total": "int"
+          },
+          "auth": "JWT dans Authorization header"
+        }
+      }
+    },
+    "frontend": {
+      "Mactar": {
+        "taches": [
+          "Configurer React Router avec routes publiques/privées",
+          "Créer les pages Login, Register et Dashboard",
+          "Implémenter les composants TaskList, TaskForm, TaskItem",
+          "Configurer le state management pour l'auth (Context/Zustand)",
+          "Implémenter les formulaires avec React Hook Form + Zod",
+          "Configurer Axios avec interceptors pour les JWT",
+          "Créer les tests unitaires avec Jest/RTL"
+        ],
+        "fichiers_a_creer": [
+          "src/pages/LoginPage.tsx",
+          "src/pages/DashboardPage.tsx",
+          "src/components/TaskList.tsx",
+          "src/components/TaskForm.tsx",
+          "src/components/TaskItem.tsx",
+          "src/context/AuthContext.tsx (ou store/authStore.ts pour Zustand)",
+          "src/api/ (services pour auth et tasks)",
+          "src/utils/ (validation schemas, axios config)",
+          "src/App.tsx (routing)"
+        ],
+        "exemple_composant": {
+          "TaskList": {
+            "props": {
+              "tasks": "Task[]",
+              "onEdit": "(task: Task) => void",
+              "onDelete": "(id: number) => void"
+            },
+            "features": [
+              "Filtres par statut/priorité",
+              "Pagination",
+              "Tri par date de création",
+              "Affichage conditionnel (vide/loading)"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "constraints": [
+    "SQLite uniquement pour le développement (pas de production)",
+    "JWT obligatoire pour toutes les routes protégées",
+    "Validation des entrées côté backend et frontend",
+    "Tests unitaires obligatoires avant merge (couverture > 80%)",
+    "Déploiement automatique via CI/CD pipeline"
+  ],
+  "estimated_files": {
+    "database": 4,
+    "backend": 12,
+    "frontend": 15
+  }
+}

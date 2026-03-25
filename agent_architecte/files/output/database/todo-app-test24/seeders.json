@@ -1,0 +1,16 @@
+{
+  "seeders": [
+    {
+      "table": "User",
+      "description": "5 utilisateurs avec emails réalistes et mots de passe hashés de test",
+      "sql": "INSERT INTO User (email, hashed_password, created_at, deleted_at) VALUES ('jean.dupont@entreprise.fr', 'hashed_password_test', '2024-01-10 08:30:00', NULL), ('marie.martin@societe.com', 'hashed_password_test', '2024-01-11 09:15:00', NULL), ('pierre.lafonte@startup.io', 'hashed_password_test', '2024-01-12 14:20:00', NULL), ('claire.leblanc@corporate.net', 'hashed_password_test', '2024-01-13 16:45:00', NULL), ('lucas.robert@tech-solutions.fr', 'hashed_password_test', '2024-01-14 11:00:00', NULL)",
+      "count": 5
+    },
+    {
+      "table": "Task",
+      "description": "5 tâches variées avec statuts et priorités réalistes pour les utilisateurs",
+      "sql": "INSERT INTO Task (title, description, status, priority, user_id, created_at, updated_at, deleted_at) VALUES ('Finaliser le rapport trimestriel', 'Préparer les slides pour la réunion du 20/01', 'IN_PROGRESS', 'HIGH', 1, '2024-01-15 09:00:00', '2024-01-16 10:30:00', NULL), ('Corriger les bugs frontend', 'Résoudre les problèmes d’affichage sur la page de connexion', 'TODO', 'MEDIUM', 2, '2024-01-15 10:15:00', 'datetime(''now'')', NULL), ('Planifier la migration CI/CD', 'Documenter les étapes pour la migration GitLab CI', 'TODO', 'LOW', 3, '2024-01-15 11:45:00', 'datetime(''now'')', NULL), ('Revoir les tests unitaires', 'Vérifier la couverture des tests pour le module Auth', 'DONE', 'HIGH', 1, '2024-01-14 14:20:00', '2024-01-15 16:00:00', NULL), ('Organiser le workshop sécurité', 'Préparer l’agenda et les supports pour l’équipe', 'IN_PROGRESS', 'MEDIUM', 4, '2024-01-15 13:30:00', '2024-01-16 09:45:00', NULL)",
+      "count": 5
+    }
+  ]
+}

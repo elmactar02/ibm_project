@@ -1,0 +1,96 @@
+{
+  "indexes": [
+    {
+      "name": "idx_users_email",
+      "table": "users",
+      "columns": [
+        "email"
+      ],
+      "reason": "Accélère les recherches par email (déjà UNIQUE mais l'index est utile pour les requêtes WHERE et JOIN)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)"
+    },
+    {
+      "name": "idx_users_is_active",
+      "table": "users",
+      "columns": [
+        "is_active"
+      ],
+      "reason": "Optimise les filtres sur le statut actif/inactif des utilisateurs",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_users_is_active ON users(is_active)"
+    },
+    {
+      "name": "idx_users_deleted_at",
+      "table": "users",
+      "columns": [
+        "deleted_at"
+      ],
+      "reason": "Améliore les requêtes avec soft delete (WHERE deleted_at IS NULL)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_users_deleted_at ON users(deleted_at)"
+    },
+    {
+      "name": "idx_tasks_user_id",
+      "table": "tasks",
+      "columns": [
+        "user_id"
+      ],
+      "reason": "Essentiel pour les requêtes par utilisateur (JOIN et WHERE user_id = ?)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_tasks_user_id ON tasks(user_id)"
+    },
+    {
+      "name": "idx_tasks_status",
+      "table": "tasks",
+      "columns": [
+        "status"
+      ],
+      "reason": "Optimise les filtres par statut de tâche (ex: WHERE status = 'pending')",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_tasks_status ON tasks(status)"
+    },
+    {
+      "name": "idx_tasks_priority",
+      "table": "tasks",
+      "columns": [
+        "priority"
+      ],
+      "reason": "Améliore les requêtes triées ou filtrées par priorité",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_tasks_priority ON tasks(priority)"
+    },
+    {
+      "name": "idx_tasks_due_date",
+      "table": "tasks",
+      "columns": [
+        "due_date"
+      ],
+      "reason": "Accélère les requêtes sur les dates d'échéance (ex: WHERE due_date < ?)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_tasks_due_date ON tasks(due_date)"
+    },
+    {
+      "name": "idx_tasks_deleted_at",
+      "table": "tasks",
+      "columns": [
+        "deleted_at"
+      ],
+      "reason": "Optimise les requêtes avec soft delete (WHERE deleted_at IS NULL)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_tasks_deleted_at ON tasks(deleted_at)"
+    },
+    {
+      "name": "idx_tasks_user_id_status",
+      "table": "tasks",
+      "columns": [
+        "user_id",
+        "status"
+      ],
+      "reason": "Index composite pour les requêtes fréquentes combinant utilisateur et statut (ex: WHERE user_id = ? AND status = ?)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_tasks_user_id_status ON tasks(user_id, status)"
+    },
+    {
+      "name": "idx_tasks_user_id_priority",
+      "table": "tasks",
+      "columns": [
+        "user_id",
+        "priority"
+      ],
+      "reason": "Index composite pour les requêtes combinant utilisateur et priorité",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_tasks_user_id_priority ON tasks(user_id, priority)"
+    }
+  ]
+}

@@ -1,0 +1,175 @@
+{
+  "project": {
+    "name": "todo-app-test12",
+    "description": "Application de gestion de tâches avec authentification JWT, filtres dynamiques et pipeline CI/CD.",
+    "complexity": "medium"
+  },
+  "modules": [
+    "auth",
+    "tasks",
+    "dashboard"
+  ],
+  "user_journeys": [
+    {
+      "name": "Inscription et première tâche",
+      "steps": [
+        "L'utilisateur accède à la page d'inscription",
+        "Remplit le formulaire (email + mot de passe)",
+        "Valide et est redirigé vers le dashboard",
+        "Crée une première tâche avec titre et priorité"
+      ]
+    },
+    {
+      "name": "Filtrage des tâches",
+      "steps": [
+        "L'utilisateur se connecte",
+        "Sélectionne un filtre (ex: statut 'en cours')",
+        "Le dashboard affiche uniquement les tâches correspondantes"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id",
+        "email",
+        "hashed_password",
+        "created_at"
+      ],
+      "relations": []
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "created_at",
+        "updated_at",
+        "user_id"
+      ],
+      "relations": [
+        "Many-to-One avec User"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "description": "Inscription utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Connexion utilisateur (retourne JWT)",
+      "auth_required": false
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "description": "Liste des tâches avec filtres (status, priority)",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "description": "Créer une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{task_id}",
+      "description": "Modifier une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{task_id}",
+      "description": "Supprimer une tâche",
+      "auth_required": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Vite + Tailwind CSS",
+    "backend": "FastAPI + Python 3.10 + SQLAlchemy",
+    "database": "PostgreSQL 15",
+    "auth": "JWT (HS256) + bcrypt",
+    "cache": "None",
+    "message_broker": "None",
+    "container": "Docker + Docker Compose",
+    "cloud": "Render/Railway (PostgreSQL managé)"
+  },
+  "dev_instructions": {
+    "database": {
+      "models": [
+        {
+          "name": "User",
+          "sqlalchemy_model": "class User(Base):\n    __tablename__ = 'users'\n    id = Column(Integer, primary_key=True)\n    email = Column(String(255), unique=True, nullable=False)\n    hashed_password = Column(String(255), nullable=False)\n    created_at = Column(DateTime, default=datetime.utcnow)\n    tasks = relationship('Task', back_populates='user')"
+        },
+        {
+          "name": "Task",
+          "sqlalchemy_model": "class Task(Base):\n    __tablename__ = 'tasks'\n    id = Column(Integer, primary_key=True)\n    title = Column(String(255), nullable=False)\n    description = Column(Text, nullable=True)\n    status = Column(Enum('todo', 'in_progress', 'done', name='task_status'), default='todo')\n    priority = Column(Enum('low', 'medium', 'high', name='task_priority'), default='medium')\n    created_at = Column(DateTime, default=datetime.utcnow)\n    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)\n    user_id = Column(Integer, ForeignKey('users.id'), nullable=False)\n    user = relationship('User', back_populates='tasks')"
+        }
+      ],
+      "migrations": "1. Initialiser Alembic: `alembic init migrations`. 2. Configurer `alembic.ini` avec l'URL de la base. 3. Créer une migration: `alembic revision --autogenerate -m 'init'`. 4. Appliquer: `alembic upgrade head`.",
+      "indexes": "Créer des indexes sur `tasks.user_id` et `tasks.status` pour optimiser les filtres.",
+      "seed": "Prévoir un script `seed.py` pour insérer des données de test (ex: 1 utilisateur + 5 tâches)."
+    },
+    "backend": {
+      "structure": {
+        "routers": {
+          "auth.py": "Gère les endpoints `/auth/register` et `/auth/login`. Utilise `AuthService` pour la logique métier.",
+          "tasks.py": "Gère les endpoints `/tasks` (CRUD + filtres). Vérifie les permissions via dépendance FastAPI."
+        },
+        "services": {
+          "auth_service.py": "Contient la logique de hachage (bcrypt) et génération JWT (python-jose).",
+          "task_service.py": "Contient la logique métier des tâches (ex: validation des champs, filtres)."
+        },
+        "models": {
+          "schemas.py": "Modèles Pydantic pour la validation des requêtes/réponses (ex: `TaskCreate`, `TaskResponse`).",
+          "models.py": "Modèles SQLAlchemy (voir section database)."
+        },
+        "config.py": "Charge les variables d'environnement (ex: `SECRET_KEY`, `DATABASE_URL`)."
+      },
+      "auth": {
+        "jwt": "1. Générer un token avec `jwt.encode(payload, SECRET_KEY, algorithm='HS256')`. 2. Stocker dans un cookie httpOnly. 3. Vérifier le token dans un middleware FastAPI pour les endpoints protégés.",
+        "password": "Hacher les mots de passe avec `passlib.hash.bcrypt`. Vérifier avec `passlib.verify(password, hashed_password)`."
+      },
+      "tests": "1. Créer des tests unitaires avec `pytest` (ex: `test_auth.py`, `test_tasks.py`). 2. Utiliser `TestClient` de FastAPI pour les tests d'API. 3. Mocker la base de données avec `pytest-mock`."
+    },
+    "frontend": {
+      "pages": {
+        "LoginPage": "Formulaire avec email/mot de passe. Validation avec React Hook Form + Zod. Redirection vers `/dashboard` après connexion.",
+        "RegisterPage": "Similaire à LoginPage, mais avec confirmation de mot de passe.",
+        "DashboardPage": "Affiche `TaskList` et `TaskFilters`. Gère l'état des tâches avec `useReducer`."
+      },
+      "components": {
+        "TaskList": "Liste des `TaskCard`. Filtre les tâches en fonction des sélections dans `TaskFilters`.",
+        "TaskFilters": "Composant contrôlé avec deux selects (status, priority). Émet les changements via un callback.",
+        "TaskForm": "Modal pour créer/modifier une tâche. Validation des champs obligatoires (titre)."
+      },
+      "routing": "1. Configurer React Router avec `BrowserRouter`. 2. Créer un composant `PrivateRoute` pour protéger les routes (ex: `/dashboard`). 3. Rediriger vers `/login` si non authentifié.",
+      "state": {
+        "auth": "Utiliser `React.createContext` pour partager l'état de l'utilisateur (token, email) entre les composants.",
+        "tasks": "Gérer l'état local des tâches avec `useState` ou `useReducer` (selon complexité)."
+      },
+      "styling": "1. Configurer Tailwind CSS avec `tailwind.config.js`. 2. Créer des classes utilitaires pour les couleurs (ex: `bg-priority-high`). 3. Utiliser des composants partagés (ex: `Button`, `Input`) pour la cohérence."
+    }
+  },
+  "constraints": [
+    "Le JWT doit expirer après 1h (pas de refresh tokens dans cette version).",
+    "Les mots de passe doivent être hachés avec bcrypt (coût 12).",
+    "Les filtres de tâches doivent être implémentés côté backend pour des performances optimales.",
+    "Le frontend doit être responsive (mobile-first)."
+  ],
+  "estimated_files": {
+    "database": 4,
+    "backend": 12,
+    "frontend": 15
+  }
+}

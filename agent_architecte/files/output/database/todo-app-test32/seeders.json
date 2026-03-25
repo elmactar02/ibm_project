@@ -1,0 +1,16 @@
+{
+  "seeders": [
+    {
+      "table": "User",
+      "description": "5 utilisateurs avec emails réalistes et mots de passe hashés de test",
+      "sql": "INSERT INTO User (email, hashed_password, created_at, deleted_at) VALUES ('jean.dupont@entreprise.fr', 'hashed_password_test', '2024-01-10 08:30:00', NULL), ('marie.martin@startup.io', 'hashed_password_test', '2024-01-11 09:15:00', NULL), ('pierre.lefevre@corpo.com', 'hashed_password_test', '2024-01-12 14:20:00', NULL), ('claire.bernard@agence.fr', 'hashed_password_test', '2024-01-13 16:45:00', NULL), ('lucas.roussel@tech.dev', 'hashed_password_test', '2024-01-14 11:00:00', NULL)",
+      "count": 5
+    },
+    {
+      "table": "Task",
+      "description": "5 tâches variées avec statuts et priorités réalistes pour les utilisateurs",
+      "sql": "INSERT INTO Task (title, description, status, priority, created_at, updated_at, user_id, deleted_at) VALUES ('Finaliser le rapport trimestriel', 'Préparer les slides pour la réunion du 20/01', 'IN_PROGRESS', 'HIGH', '2024-01-15 09:00:00', '2024-01-15 10:30:00', 1, NULL), ('Corriger bug API v2', 'Problème de pagination sur l''endpoint /users', 'TODO', 'MEDIUM', '2024-01-14 14:15:00', '2024-01-14 14:15:00', 2, NULL), ('Planifier sprint 5', 'Organiser le backlog et prioriser les user stories', 'DONE', 'LOW', '2024-01-10 11:20:00', '2024-01-12 17:45:00', 3, NULL), ('Mettre à jour la documentation', 'Ajouter les nouveaux endpoints et exemples d''utilisation', 'IN_PROGRESS', 'MEDIUM', '2024-01-13 08:45:00', '2024-01-15 09:10:00', 1, NULL), ('Tester la nouvelle UI', 'Vérifier la compatibilité mobile et desktop', 'TODO', 'HIGH', '2024-01-15 11:00:00', '2024-01-15 11:00:00', 4, NULL)",
+      "count": 5
+    }
+  ]
+}

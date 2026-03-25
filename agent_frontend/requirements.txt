@@ -1,0 +1,26 @@
+# requirements.txt - Frontend Developer Agent
+# pip install -r requirements.txt
+#
+# Pre-requis :
+#   Cle API Groq gratuite sur https://console.groq.com
+#   export GROQ_API_KEY="gsk_..."
+
+# LangGraph & LangChain core
+langgraph>=0.2.0
+langchain-core>=0.3.0
+
+# Intégration Groq
+langchain-groq>=0.2.0
+
+# Chargement de la config client (theme + repo)
+pyyaml>=6.0
+
+# HTTP client (utilise dans le code Streamlit genere)
+httpx>=0.27.0
+requests>=2.32.0
+
+# Streamlit (pour executer l'app generee)
+streamlit>=1.40.0
+
+# Typage Python
+typing-extensions>=4.12.0

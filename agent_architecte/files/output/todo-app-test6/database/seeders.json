@@ -1,0 +1,16 @@
+{
+  "seeders": [
+    {
+      "table": "User",
+      "description": "5 utilisateurs avec emails réalistes et mots de passe hashés de test",
+      "sql": "INSERT INTO User (email, hashed_password, created_at, deleted_at) VALUES ('jean.dupont@entreprise.fr', 'hashed_password_test', '2023-11-10 08:30:00', NULL), ('marie.martin@startup.io', 'hashed_password_test', '2023-11-12 14:15:00', NULL), ('pierre.lefevre@techcorp.com', 'hashed_password_test', '2023-11-15 09:45:00', NULL), ('claire.bernard@innovate.fr', 'hashed_password_test', '2023-12-01 11:20:00', NULL), ('lucas.roussel@devteam.org', 'hashed_password_test', '2023-12-05 16:50:00', NULL)",
+      "count": 5
+    },
+    {
+      "table": "Task",
+      "description": "5 tâches variées avec statuts, priorités et dates réalistes",
+      "sql": "INSERT INTO Task (title, description, status, priority, due_date, user_id, created_at, updated_at, deleted_at) VALUES ('Implémenter l''authentification JWT', 'Créer le middleware d''authentification avec vérification des tokens', 'IN_PROGRESS', 'HIGH', '2024-01-20 17:00:00', 1, '2024-01-05 09:15:00', '2024-01-10 14:30:00', NULL), ('Configurer le pipeline CI/CD', 'Ajouter les étapes de test et déploiement automatique', 'TODO', 'MEDIUM', '2024-01-25 12:00:00', 2, '2024-01-06 10:20:00', '2024-01-06 10:20:00', NULL), ('Optimiser les requêtes SQL', 'Réduire le temps d''exécution des requêtes complexes', 'DONE', 'HIGH', '2024-01-10 18:00:00', 3, '2024-01-02 11:45:00', '2024-01-08 16:20:00', NULL), ('Créer la documentation API', 'Rédiger les spécifications Swagger pour les endpoints', 'IN_PROGRESS', 'LOW', NULL, 1, '2024-01-07 13:30:00', '2024-01-12 09:10:00', NULL), ('Corriger le bug de filtre avancé', 'Le filtre par date ne fonctionne pas correctement', 'TODO', 'MEDIUM', '2024-01-18 11:00:00', 4, '2024-01-09 15:40:00', '2024-01-09 15:40:00', NULL)",
+      "count": 5
+    }
+  ]
+}

@@ -1,0 +1,147 @@
+{
+  "project": {
+    "name": "todo-app-test10",
+    "description": "Application full-stack de gestion de tâches avec authentification JWT, filtres avancés et pipeline CI/CD",
+    "complexity": "medium"
+  },
+  "modules": [
+    "authentication",
+    "task_management",
+    "user_interface",
+    "ci_cd"
+  ],
+  "user_journeys": [
+    {
+      "name": "Inscription et première connexion",
+      "steps": [
+        "L'utilisateur accède à la page d'inscription",
+        "Il remplit le formulaire avec email, mot de passe et nom",
+        "Le système valide les données et crée le compte",
+        "L'utilisateur est redirigé vers le tableau de bord"
+      ]
+    },
+    {
+      "name": "Gestion des tâches",
+      "steps": [
+        "L'utilisateur connecté accède au tableau de bord",
+        "Il crée une nouvelle tâche avec titre, description et priorité",
+        "Il filtre les tâches par statut 'todo'",
+        "Il marque une tâche comme 'done'",
+        "Il supprime une tâche terminée"
+      ]
+    },
+    {
+      "name": "Déconnexion et reconnexion",
+      "steps": [
+        "L'utilisateur clique sur 'Déconnexion'",
+        "Il est redirigé vers la page de login",
+        "Il se reconnecte avec ses identifiants",
+        "Il retrouve son tableau de bord avec toutes ses tâches"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id (Integer, Primary Key)",
+        "email (String, Unique)",
+        "hashed_password (String)",
+        "full_name (String, nullable)",
+        "created_at (DateTime)"
+      ],
+      "relations": [
+        "One-to-Many avec Task"
+      ]
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id (Integer, Primary Key)",
+        "title (String)",
+        "description (Text, nullable)",
+        "status (Enum: todo|in_progress|done)",
+        "priority (Enum: low|medium|high)",
+        "due_date (Date, nullable)",
+        "created_at (DateTime)",
+        "updated_at (DateTime)",
+        "user_id (Integer, Foreign Key)"
+      ],
+      "relations": [
+        "Many-to-One avec User"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "description": "Inscription d'un nouvel utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Connexion d'un utilisateur existant",
+      "auth_required": false
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "description": "Liste des tâches avec filtres optionnels",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "description": "Création d'une nouvelle tâche",
+      "auth_required": true
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/{task_id}",
+      "description": "Récupération d'une tâche spécifique",
+      "auth_required": true
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{task_id}",
+      "description": "Mise à jour d'une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{task_id}",
+      "description": "Suppression d'une tâche",
+      "auth_required": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Vite + Tailwind CSS + React Router v6",
+    "backend": "FastAPI (Python 3.10) + SQLAlchemy + python-jose + passlib",
+    "database": "PostgreSQL 15",
+    "auth": "JWT avec python-jose (JWS) et passlib (bcrypt)",
+    "cache": "none",
+    "message_broker": "none",
+    "container": "Docker + Docker Compose + Nginx (frontend)",
+    "cloud": "Déploiement local pour développement, cible AWS ECS/Vercel pour production"
+  },
+  "dev_instructions": {
+    "database": "Oumeyma: \n1. Crée les modèles SQLAlchemy pour User et Task avec les champs exacts spécifiés dans la section TECHSTACK.\n2. Utilise Alembic pour générer et appliquer les migrations.\n3. Implémente les indexes suivants:\n   - idx_task_user_id sur task(user_id)\n   - idx_task_status sur task(status)\n   - idx_task_priority sur task(priority)\n4. Ajoute une contrainte CHECK pour empêcher les dates de création postérieures aux dates de mise à jour.\n5. Crée un utilisateur PostgreSQL dédié avec les permissions minimales nécessaires.\n6. Configure la connexion à la base de données via des variables d'environnement (DATABASE_URL).\n7. Implémente les tests unitaires pour les modèles et les requêtes SQL (pytest).",
+    "backend": "Akram: \n1. Structure le projet FastAPI selon les dossiers suivants:\n   - /routers (auth.py, tasks.py)\n   - /services (users.py, tasks.py)\n   - /models (user.py, task.py)\n   - /database (session.py, base.py)\n   - /utils (jwt.py, security.py)\n   - /config (settings.py)\n2. Implémente les endpoints FastAPI avec:\n   - Validation des données via Pydantic\n   - Gestion des erreurs personnalisées\n   - Documentation OpenAPI automatique\n3. Implémente l'authentification JWT:\n   - Utilise python-jose pour la génération/validation des tokens\n   - Utilise passlib avec bcrypt pour le hashage des mots de passe\n   - Configure une durée de validité de 30 minutes pour les tokens\n4. Crée les services métier:\n   - users_service.py: logique pour l'inscription/connexion\n   - tasks_service.py: logique pour le CRUD des tâches avec vérification de l'appartenance\n5. Implémente les tests:\n   - Tests unitaires pour chaque endpoint (pytest)\n   - Tests d'intégration pour les parcours principaux\n   - Tests de sécurité pour les endpoints protégés\n6. Configure les variables d'environnement:\n   - SECRET_KEY pour JWT\n   - DATABASE_URL pour PostgreSQL\n   - CORS_ORIGINS pour les origines autorisées",
+    "frontend": "Mactar: \n1. Crée l'application React avec Vite et TypeScript.\n2. Structure le projet selon:\n   - /src/pages (LoginPage, RegisterPage, DashboardPage)\n   - /src/components (AuthLayout, DashboardLayout, TaskList, TaskFilters, TaskForm, TaskItem, Navbar)\n   - /src/context (AuthContext, TasksContext)\n   - /src/hooks (useAuth, useTasks)\n   - /src/api (apiClient.ts, auth.ts, tasks.ts)\n   - /src/types (pour les interfaces TypeScript)\n3. Implémente le routing avec React Router v6:\n   - Routes protégées pour le tableau de bord\n   - Redirection automatique après connexion\n4. Crée les composants React:\n   - Formulaires avec React Hook Form + Zod pour la validation\n   - Composants stylisés avec Tailwind CSS\n   - Gestion des états avec React Context + useReducer\n5. Implémente le client API avec Axios:\n   - Interceptor pour ajouter le token JWT aux requêtes\n   - Gestion des erreurs 401 (déconnexion automatique)\n6. Crée les tests:\n   - Tests unitaires pour les composants (Jest + React Testing Library)\n   - Tests d'intégration pour les parcours utilisateurs\n   - Tests des hooks personnalisés\n7. Configure les variables d'environnement:\n   - VITE_API_BASE_URL pour l'URL de l'API\n8. Implémente les fonctionnalités:\n   - Formulaire d'inscription/connexion\n   - Tableau de bord avec liste de tâches filtrable\n   - Modale pour création/modification de tâche\n   - Confirmation avant suppression de tâche"
+  },
+  "constraints": [
+    "Le token JWT doit expirer après 30 minutes d'inactivité",
+    "Les mots de passe doivent être hashés avec bcrypt (coût 12)",
+    "Les filtres de tâches doivent utiliser les indexes PostgreSQL",
+    "L'application doit être responsive (mobile, tablette, desktop)",
+    "Le pipeline CI/CD doit exécuter tous les tests avant déploiement",
+    "Les variables d'environnement doivent être utilisées pour tous les secrets"
+  ],
+  "estimated_files": {
+    "database": 5,
+    "backend": 15,
+    "frontend": 25
+  }
+}

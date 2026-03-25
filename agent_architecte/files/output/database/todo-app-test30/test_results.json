@@ -1,0 +1,18 @@
+{
+  "passed": [
+    "Table 'users' existe",
+    "Table 'tasks' existe",
+    "'users' contient 5 lignes",
+    "UNIQUE users.email OK",
+    "NOT NULL users.email OK",
+    "NOT NULL tasks.title OK",
+    "FK tasks.user_id OK",
+    "Soft delete users OK",
+    "Soft delete tasks OK",
+    "Timestamp users OK",
+    "JOIN tasks↔users OK"
+  ],
+  "failed": [
+    "'tasks' est vide"
+  ]
+}

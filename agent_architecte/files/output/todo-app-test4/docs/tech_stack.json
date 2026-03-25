@@ -1,0 +1,247 @@
+{
+  "database": {
+    "dev": "SQLite avec SQLAlchemy ORM, migrations via Alembic",
+    "prod": "PostgreSQL 15 avec SQLAlchemy ORM, pool de connexions (asyncpg)",
+    "models": [
+      {
+        "name": "User",
+        "fields": {
+          "id": "Integer (Primary Key)",
+          "email": "String (Unique, Index)",
+          "hashed_password": "String",
+          "full_name": "String (Nullable)",
+          "created_at": "DateTime (default=datetime.utcnow)"
+        }
+      },
+      {
+        "name": "Task",
+        "fields": {
+          "id": "Integer (Primary Key)",
+          "title": "String (Index)",
+          "description": "Text (Nullable)",
+          "status": "Enum('todo', 'in_progress', 'done') (Index)",
+          "priority": "Enum('low', 'medium', 'high') (Index)",
+          "due_date": "Date (Nullable)",
+          "user_id": "Integer (ForeignKey: User.id)",
+          "created_at": "DateTime (default=datetime.utcnow)",
+          "updated_at": "DateTime (default=datetime.utcnow, onupdate=datetime.utcnow)"
+        },
+        "relations": [
+          "Many-to-One avec User (user_id)"
+        ]
+      }
+    ],
+    "indexes": [
+      "CREATE INDEX idx_task_user_status ON task(user_id, status)",
+      "CREATE INDEX idx_task_user_priority ON task(user_id, priority)"
+    ]
+  },
+  "backend": {
+    "framework": "FastAPI avec structure modulaire (routers/services)",
+    "endpoints": [
+      {
+        "path": "/auth/register",
+        "method": "POST",
+        "description": "Inscription utilisateur (email + mot de passe)",
+        "auth_required": false,
+        "request_body": {
+          "email": "str",
+          "password": "str",
+          "full_name": "str (optional)"
+        },
+        "response": {
+          "id": "int",
+          "email": "str"
+        }
+      },
+      {
+        "path": "/auth/login",
+        "method": "POST",
+        "description": "Connexion utilisateur (retourne JWT)",
+        "auth_required": false,
+        "request_body": {
+          "email": "str",
+          "password": "str"
+        },
+        "response": {
+          "access_token": "str",
+          "token_type": "str"
+        }
+      },
+      {
+        "path": "/tasks",
+        "method": "GET",
+        "description": "Liste des t\u00e2ches avec filtres (status, priority)",
+        "auth_required": true,
+        "query_params": {
+          "status": "str (optional)",
+          "priority": "str (optional)"
+        },
+        "response": [
+          {
+            "id": "int",
+            "title": "str",
+            "status": "str",
+            "priority": "str"
+          }
+        ]
+      },
+      {
+        "path": "/tasks",
+        "method": "POST",
+        "description": "Cr\u00e9er une t\u00e2che",
+        "auth_required": true,
+        "request_body": {
+          "title": "str",
+          "description": "str (optional)",
+          "status": "str (optional)",
+          "priority": "str (optional)",
+          "due_date": "str (optional)"
+        },
+        "response": {
+          "id": "int",
+          "title": "str"
+        }
+      },
+      {
+        "path": "/tasks/{task_id}",
+        "method": "PUT",
+        "description": "Modifier une t\u00e2che",
+        "auth_required": true,
+        "request_body": {
+          "title": "str (optional)",
+          "description": "str (optional)",
+          "status": "str (optional)",
+          "priority": "str (optional)",
+          "due_date": "str (optional)"
+        },
+        "response": {
+          "id": "int",
+          "title": "str"
+        }
+      },
+      {
+        "path": "/tasks/{task_id}",
+        "method": "DELETE",
+        "description": "Supprimer une t\u00e2che",
+        "auth_required": true,
+        "response": {
+          "detail": "Task deleted"
+        }
+      }
+    ],
+    "auth": {
+      "jwt": {
+        "algorithm": "HS256",
+        "secret_key": "G\u00e9n\u00e9r\u00e9 via secrets.token_urlsafe(32)",
+        "access_token_expire_minutes": 30,
+        "library": "python-jose[cryptography] + passlib[bcrypt]"
+      },
+      "password_hashing": "bcrypt avec salt"
+    },
+    "structure": {
+      "routers": [
+        "auth.py",
+        "tasks.py"
+      ],
+      "services": [
+        "users.py",
+        "tasks.py",
+        "auth.py"
+      ],
+      "models": [
+        "user.py",
+        "task.py"
+      ],
+      "database": [
+        "session.py",
+        "base.py",
+        "migrations/"
+      ]
+    }
+  },
+  "frontend": {
+    "framework": "React 18 + TypeScript + Vite",
+    "state_management": "React Context ou Zustand (pour auth et filtres)",
+    "ui_library": "Material-UI ou TailwindCSS",
+    "routing": "React Router v6",
+    "components": [
+      {
+        "name": "AuthLayout",
+        "description": "Layout pour pages d'authentification (login/register)"
+      },
+      {
+        "name": "DashboardLayout",
+        "description": "Layout principal avec sidebar et header"
+      },
+      {
+        "name": "TaskList",
+        "description": "Liste des t\u00e2ches avec filtres et pagination"
+      },
+      {
+        "name": "TaskItem",
+        "description": "Composant individuel de t\u00e2che avec actions (\u00e9diter/supprimer)"
+      },
+      {
+        "name": "TaskForm",
+        "description": "Formulaire pour cr\u00e9er/modifier une t\u00e2che"
+      },
+      {
+        "name": "AuthForm",
+        "description": "Formulaire de login/register avec validation"
+      },
+      {
+        "name": "FilterBar",
+        "description": "Barre de filtres pour statut/priorit\u00e9"
+      }
+    ],
+    "pages": [
+      {
+        "path": "/login",
+        "component": "AuthPage (login)"
+      },
+      {
+        "path": "/register",
+        "component": "AuthPage (register)"
+      },
+      {
+        "path": "/dashboard",
+        "component": "DashboardPage (protected route)"
+      },
+      {
+        "path": "/tasks/new",
+        "component": "TaskFormPage (protected route)"
+      },
+      {
+        "path": "/tasks/:id/edit",
+        "component": "TaskFormPage (protected route)"
+      }
+    ],
+    "api_client": "Axios avec interceptors pour JWT",
+    "form_validation": "React Hook Form + Zod"
+  },
+  "auth": "JWT avec refresh tokens (optionnel pour v2), stockage dans httpOnly cookies",
+  "cache": "None (peut \u00eatre ajout\u00e9 ult\u00e9rieurement pour les t\u00e2ches fr\u00e9quentes)",
+  "message_broker": "None",
+  "container": {
+    "docker": {
+      "frontend": "Node:18-alpine, multi-stage build",
+      "backend": "Python:3.10-slim, poetry pour d\u00e9pendances",
+      "db_dev": "SQLite (fichier local)",
+      "db_prod": "PostgreSQL:15-alpine avec volume persistant"
+    },
+    "docker_compose": {
+      "services": [
+        "frontend",
+        "backend",
+        "db"
+      ],
+      "network": "todo-network",
+      "volumes": [
+        "postgres_data",
+        "backend_data"
+      ]
+    }
+  },
+  "cloud": "D\u00e9ploiement local pour d\u00e9veloppement, cible production: Render/Heroku ou AWS ECS"
+}

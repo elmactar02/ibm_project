@@ -1,0 +1,221 @@
+{
+  "project": {
+    "name": "todo-app-test2",
+    "description": "Application de gestion de tâches avec authentification JWT, filtres dynamiques, et pipeline CI/CD.",
+    "complexity": "medium"
+  },
+  "modules": [
+    "auth",
+    "tasks",
+    "dashboard"
+  ],
+  "user_journeys": [
+    {
+      "name": "Inscription et première tâche",
+      "steps": [
+        "L'utilisateur accède à la page d'inscription",
+        "Remplit le formulaire et soumet ses données",
+        "Est redirigé vers le tableau de bord après validation",
+        "Crée une première tâche avec titre et priorité"
+      ]
+    },
+    {
+      "name": "Filtrage des tâches",
+      "steps": [
+        "L'utilisateur se connecte",
+        "Accède au tableau de bord",
+        "Applique un filtre par statut 'todo' et priorité 'high'",
+        "Voit la liste des tâches correspondantes"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id",
+        "email",
+        "hashed_password",
+        "created_at"
+      ],
+      "relations": []
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id",
+        "title",
+        "description",
+        "status",
+        "priority",
+        "created_at",
+        "updated_at",
+        "user_id"
+      ],
+      "relations": [
+        "Many-to-One avec User"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "description": "Inscription d'un nouvel utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Connexion et génération d'un JWT",
+      "auth_required": false
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "description": "Liste des tâches avec filtres (status, priority)",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "description": "Création d'une nouvelle tâche",
+      "auth_required": true
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{task_id}",
+      "description": "Mise à jour d'une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{task_id}",
+      "description": "Suppression d'une tâche",
+      "auth_required": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Vite + Material-UI/TailwindCSS",
+    "backend": "FastAPI + Python 3.10 + SQLAlchemy + Alembic",
+    "database": {
+      "dev": "SQLite",
+      "prod": "PostgreSQL 15"
+    },
+    "auth": "JWT (python-jose + passlib bcrypt) avec HttpOnly cookies",
+    "cache": "none",
+    "message_broker": "none",
+    "container": "Docker + Docker Compose (multi-stage build)",
+    "cloud": "AWS ECS ou Render pour production"
+  },
+  "dev_instructions": {
+    "database": {
+      "steps": [
+        "1. Créer les modèles SQLAlchemy dans `app/models.py` :",
+        "   - Modèle `User` avec champs `id`, `email`, `hashed_password`, `created_at`.",
+        "   - Modèle `Task` avec champs `id`, `title`, `description`, `status` (enum), `priority` (enum), `created_at`, `updated_at`, `user_id` (ForeignKey).",
+        "   - Relation Many-to-One entre `Task` et `User` avec `back_populates`.",
+        "2. Configurer Alembic pour les migrations :",
+        "   - Initialiser Alembic avec `alembic init migrations`.",
+        "   - Modifier `alembic.ini` pour pointer vers la base de données (SQLite/PostgreSQL).",
+        "   - Créer une migration initiale avec `alembic revision --autogenerate -m 'Initial migration'`.",
+        "3. Configurer SQLAlchemy pour utiliser asyncpg en production et sqlite en développement.",
+        "4. Implémenter un script de seed pour les données de test."
+      ],
+      "files": [
+        "app/models.py",
+        "alembic.ini",
+        "migrations/env.py",
+        "migrations/versions/*.py"
+      ]
+    },
+    "backend": {
+      "steps": [
+        "1. Configurer FastAPI avec Uvicorn :",
+        "   - Créer `main.py` avec l'instance FastAPI et les routers.",
+        "   - Configurer CORS pour autoriser le frontend.",
+        "2. Implémenter les routers :",
+        "   - `auth_router.py` : endpoints `/auth/register` et `/auth/login` avec validation Pydantic.",
+        "   - `tasks_router.py` : endpoints `/tasks` avec dépendance `get_current_user` pour l'authentification.",
+        "3. Créer les services :",
+        "   - `auth_service.py` : génération/validation JWT, hashage des mots de passe.",
+        "   - `users_service.py` : logique pour les utilisateurs (création, récupération).",
+        "   - `tasks_service.py` : logique pour les tâches (CRUD, filtres).",
+        "4. Configurer la base de données :",
+        "   - `database.py` : session SQLAlchemy avec gestion des connexions.",
+        "   - Variables d'environnement pour les credentials DB (`.env`).",
+        "5. Gérer les erreurs :",
+        "   - HTTPException pour les erreurs 401 (Unauthorized), 404 (Not Found), 422 (Validation Error).",
+        "6. Tests :",
+        "   - Créer des tests unitaires avec pytest pour les services et routers.",
+        "   - Utiliser `TestClient` de FastAPI pour les tests d'intégration."
+      ],
+      "files": [
+        "main.py",
+        "app/routers/auth_router.py",
+        "app/routers/tasks_router.py",
+        "app/services/auth_service.py",
+        "app/services/users_service.py",
+        "app/services/tasks_service.py",
+        "app/database.py",
+        "app/schemas.py (Pydantic models)",
+        "tests/test_auth.py",
+        "tests/test_tasks.py"
+      ]
+    },
+    "frontend": {
+      "steps": [
+        "1. Initialiser le projet avec Vite + React + TypeScript :",
+        "   - `npm create vite@latest todo-app-test2 --template react-ts`.",
+        "2. Configurer les librairies :",
+        "   - Installer Material-UI/TailwindCSS, React Router, React Query, React Hook Form, Zod.",
+        "3. Créer la structure des dossiers :",
+        "   - `/src/pages` : LoginPage, RegisterPage, DashboardPage.",
+        "   - `/src/components` : AuthLayout, TaskList, TaskFilters, TaskForm, Navbar.",
+        "   - `/src/hooks` : useAuth (contexte d'authentification), useTasks (gestion des tâches).",
+        "   - `/src/api` : clients API pour auth et tasks (axios ou fetch).",
+        "4. Implémenter l'authentification :",
+        "   - Contexte `AuthProvider` pour gérer le JWT et l'état de connexion.",
+        "   - Pages de login/register avec validation Zod et React Hook Form.",
+        "   - Redirection vers le dashboard après connexion.",
+        "5. Implémenter le dashboard :",
+        "   - Composant `TaskList` avec filtres dynamiques (status, priority).",
+        "   - Composant `TaskForm` pour créer/modifier des tâches.",
+        "   - Utilisation de React Query pour les appels API et le cache.",
+        "6. Gérer les erreurs :",
+        "   - Toasts pour les erreurs API (react-hot-toast).",
+        "   - Page 404 pour les routes inexistantes.",
+        "7. Tests :",
+        "   - Tests unitaires avec Vitest pour les composants.",
+        "   - Tests d'intégration pour les parcours utilisateurs."
+      ],
+      "files": [
+        "src/pages/LoginPage.tsx",
+        "src/pages/RegisterPage.tsx",
+        "src/pages/DashboardPage.tsx",
+        "src/components/TaskList.tsx",
+        "src/components/TaskFilters.tsx",
+        "src/components/TaskForm.tsx",
+        "src/hooks/useAuth.ts",
+        "src/hooks/useTasks.ts",
+        "src/api/auth.ts",
+        "src/api/tasks.ts",
+        "src/context/AuthProvider.tsx",
+        "src/App.tsx (routing)",
+        "src/main.tsx (entry point)"
+      ]
+    }
+  },
+  "constraints": [
+    "Le JWT doit être stocké dans des cookies HttpOnly pour éviter les attaques XSS.",
+    "Les mots de passe doivent être hashés avec bcrypt (coût 12).",
+    "Les migrations de base de données doivent être gérées avec Alembic.",
+    "Le frontend doit être responsive (adapté mobile/tablette/desktop).",
+    "Le pipeline CI/CD doit inclure des tests automatisés avant déploiement."
+  ],
+  "estimated_files": {
+    "database": 4,
+    "backend": 12,
+    "frontend": 15
+  }
+}

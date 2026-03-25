@@ -1,0 +1,477 @@
+{
+  "status": "completed",
+  "project": "todo-app-test5",
+  "summary": {
+    "tables": 2,
+    "indexes": 9,
+    "migrations": 1,
+    "seeders": 2
+  },
+  "tables_info": [
+    {
+      "name": "users",
+      "schema": {
+        "table": "users",
+        "columns": [
+          [
+            0,
+            "id",
+            "INTEGER",
+            0,
+            null,
+            1
+          ],
+          [
+            1,
+            "email",
+            "TEXT",
+            1,
+            null,
+            0
+          ],
+          [
+            2,
+            "hashed_password",
+            "TEXT",
+            1,
+            null,
+            0
+          ],
+          [
+            3,
+            "is_active",
+            "INTEGER",
+            0,
+            "1",
+            0
+          ],
+          [
+            4,
+            "created_at",
+            "TEXT",
+            0,
+            "datetime('now')",
+            0
+          ],
+          [
+            5,
+            "deleted_at",
+            "TEXT",
+            0,
+            "NULL",
+            0
+          ]
+        ],
+        "foreign_keys": []
+      },
+      "count": 5
+    },
+    {
+      "name": "sqlite_sequence",
+      "schema": {
+        "table": "sqlite_sequence",
+        "columns": [
+          [
+            0,
+            "name",
+            "",
+            0,
+            null,
+            0
+          ],
+          [
+            1,
+            "seq",
+            "",
+            0,
+            null,
+            0
+          ]
+        ],
+        "foreign_keys": []
+      },
+      "count": 2
+    },
+    {
+      "name": "tasks",
+      "schema": {
+        "table": "tasks",
+        "columns": [
+          [
+            0,
+            "id",
+            "INTEGER",
+            0,
+            null,
+            1
+          ],
+          [
+            1,
+            "title",
+            "TEXT",
+            1,
+            null,
+            0
+          ],
+          [
+            2,
+            "description",
+            "TEXT",
+            0,
+            null,
+            0
+          ],
+          [
+            3,
+            "status",
+            "TEXT",
+            1,
+            "'todo'",
+            0
+          ],
+          [
+            4,
+            "priority",
+            "TEXT",
+            1,
+            "'medium'",
+            0
+          ],
+          [
+            5,
+            "due_date",
+            "TEXT",
+            0,
+            null,
+            0
+          ],
+          [
+            6,
+            "created_at",
+            "TEXT",
+            0,
+            "datetime('now')",
+            0
+          ],
+          [
+            7,
+            "updated_at",
+            "TEXT",
+            0,
+            "datetime('now')",
+            0
+          ],
+          [
+            8,
+            "user_id",
+            "INTEGER",
+            1,
+            null,
+            0
+          ],
+          [
+            9,
+            "deleted_at",
+            "TEXT",
+            0,
+            "NULL",
+            0
+          ]
+        ],
+        "foreign_keys": [
+          [
+            0,
+            0,
+            "users",
+            "user_id",
+            "id",
+            "NO ACTION",
+            "CASCADE",
+            "NONE"
+          ]
+        ]
+      },
+      "count": 5
+    }
+  ],
+  "for_backend": {
+    "schema": {
+      "tables": [
+        {
+          "name": "users",
+          "sql": "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, hashed_password TEXT NOT NULL, is_active INTEGER DEFAULT 1, created_at TEXT DEFAULT (datetime('now')), deleted_at TEXT DEFAULT NULL)",
+          "columns": [
+            {
+              "name": "id",
+              "type": "INTEGER",
+              "constraints": [
+                "PRIMARY KEY AUTOINCREMENT"
+              ]
+            },
+            {
+              "name": "email",
+              "type": "TEXT",
+              "constraints": [
+                "NOT NULL",
+                "UNIQUE"
+              ]
+            },
+            {
+              "name": "hashed_password",
+              "type": "TEXT",
+              "constraints": [
+                "NOT NULL"
+              ]
+            },
+            {
+              "name": "is_active",
+              "type": "INTEGER",
+              "constraints": [
+                "DEFAULT 1"
+              ]
+            },
+            {
+              "name": "created_at",
+              "type": "TEXT",
+              "constraints": [
+                "DEFAULT (datetime('now'))"
+              ]
+            },
+            {
+              "name": "deleted_at",
+              "type": "TEXT",
+              "constraints": [
+                "DEFAULT NULL"
+              ]
+            }
+          ],
+          "foreign_keys": []
+        },
+        {
+          "name": "tasks",
+          "sql": "CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, description TEXT, status TEXT NOT NULL DEFAULT 'todo', priority TEXT NOT NULL DEFAULT 'medium', due_date TEXT, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), user_id INTEGER NOT NULL, deleted_at TEXT DEFAULT NULL, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE)",
+          "columns": [
+            {
+              "name": "id",
+              "type": "INTEGER",
+              "constraints": [
+                "PRIMARY KEY AUTOINCREMENT"
+              ]
+            },
+            {
+              "name": "title",
+              "type": "TEXT",
+              "constraints": [
+                "NOT NULL"
+              ]
+            },
+            {
+              "name": "description",
+              "type": "TEXT",
+              "constraints": []
+            },
+            {
+              "name": "status",
+              "type": "TEXT",
+              "constraints": [
+                "NOT NULL",
+                "DEFAULT 'todo'"
+              ]
+            },
+            {
+              "name": "priority",
+              "type": "TEXT",
+              "constraints": [
+                "NOT NULL",
+                "DEFAULT 'medium'"
+              ]
+            },
+            {
+              "name": "due_date",
+              "type": "TEXT",
+              "constraints": []
+            },
+            {
+              "name": "created_at",
+              "type": "TEXT",
+              "constraints": [
+                "DEFAULT (datetime('now'))"
+              ]
+            },
+            {
+              "name": "updated_at",
+              "type": "TEXT",
+              "constraints": [
+                "DEFAULT (datetime('now'))"
+              ]
+            },
+            {
+              "name": "user_id",
+              "type": "INTEGER",
+              "constraints": [
+                "NOT NULL"
+              ]
+            },
+            {
+              "name": "deleted_at",
+              "type": "TEXT",
+              "constraints": [
+                "DEFAULT NULL"
+              ]
+            }
+          ],
+          "foreign_keys": [
+            {
+              "column": "user_id",
+              "references": "users(id)",
+              "on_delete": "CASCADE"
+            }
+          ]
+        }
+      ]
+    },
+    "full_sql": "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, hashed_password TEXT NOT NULL, is_active INTEGER DEFAULT 1, created_at TEXT DEFAULT (datetime('now')), deleted_at TEXT DEFAULT NULL)\nCREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, description TEXT, status TEXT NOT NULL DEFAULT 'todo', priority TEXT NOT NULL DEFAULT 'medium', due_date TEXT, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), user_id INTEGER NOT NULL, deleted_at TEXT DEFAULT NULL, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE)",
+    "tables": [
+      {
+        "name": "users",
+        "sql": "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, hashed_password TEXT NOT NULL, is_active INTEGER DEFAULT 1, created_at TEXT DEFAULT (datetime('now')), deleted_at TEXT DEFAULT NULL)",
+        "columns": [
+          {
+            "name": "id",
+            "type": "INTEGER",
+            "constraints": [
+              "PRIMARY KEY AUTOINCREMENT"
+            ]
+          },
+          {
+            "name": "email",
+            "type": "TEXT",
+            "constraints": [
+              "NOT NULL",
+              "UNIQUE"
+            ]
+          },
+          {
+            "name": "hashed_password",
+            "type": "TEXT",
+            "constraints": [
+              "NOT NULL"
+            ]
+          },
+          {
+            "name": "is_active",
+            "type": "INTEGER",
+            "constraints": [
+              "DEFAULT 1"
+            ]
+          },
+          {
+            "name": "created_at",
+            "type": "TEXT",
+            "constraints": [
+              "DEFAULT (datetime('now'))"
+            ]
+          },
+          {
+            "name": "deleted_at",
+            "type": "TEXT",
+            "constraints": [
+              "DEFAULT NULL"
+            ]
+          }
+        ],
+        "foreign_keys": []
+      },
+      {
+        "name": "tasks",
+        "sql": "CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, description TEXT, status TEXT NOT NULL DEFAULT 'todo', priority TEXT NOT NULL DEFAULT 'medium', due_date TEXT, created_at TEXT DEFAULT (datetime('now')), updated_at TEXT DEFAULT (datetime('now')), user_id INTEGER NOT NULL, deleted_at TEXT DEFAULT NULL, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE)",
+        "columns": [
+          {
+            "name": "id",
+            "type": "INTEGER",
+            "constraints": [
+              "PRIMARY KEY AUTOINCREMENT"
+            ]
+          },
+          {
+            "name": "title",
+            "type": "TEXT",
+            "constraints": [
+              "NOT NULL"
+            ]
+          },
+          {
+            "name": "description",
+            "type": "TEXT",
+            "constraints": []
+          },
+          {
+            "name": "status",
+            "type": "TEXT",
+            "constraints": [
+              "NOT NULL",
+              "DEFAULT 'todo'"
+            ]
+          },
+          {
+            "name": "priority",
+            "type": "TEXT",
+            "constraints": [
+              "NOT NULL",
+              "DEFAULT 'medium'"
+            ]
+          },
+          {
+            "name": "due_date",
+            "type": "TEXT",
+            "constraints": []
+          },
+          {
+            "name": "created_at",
+            "type": "TEXT",
+            "constraints": [
+              "DEFAULT (datetime('now'))"
+            ]
+          },
+          {
+            "name": "updated_at",
+            "type": "TEXT",
+            "constraints": [
+              "DEFAULT (datetime('now'))"
+            ]
+          },
+          {
+            "name": "user_id",
+            "type": "INTEGER",
+            "constraints": [
+              "NOT NULL"
+            ]
+          },
+          {
+            "name": "deleted_at",
+            "type": "TEXT",
+            "constraints": [
+              "DEFAULT NULL"
+            ]
+          }
+        ],
+        "foreign_keys": [
+          {
+            "column": "user_id",
+            "references": "users(id)",
+            "on_delete": "CASCADE"
+          }
+        ]
+      }
+    ]
+  },
+  "files_generated": [
+    "outputs/schema.json",
+    "outputs/migrations.json",
+    "outputs/indexes.json",
+    "outputs/seeders.json",
+    "outputs/test_results.json",
+    "outputs/db_report.json",
+    "outputs/todo_app.db"
+  ]
+}

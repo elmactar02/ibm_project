@@ -1,0 +1,137 @@
+{
+  "project": {
+    "name": "todo-app-test13",
+    "description": "Application de gestion de tâches avec authentification JWT, tableau de bord filtrable et pipeline CI/CD.",
+    "complexity": "medium"
+  },
+  "modules": [
+    "authentication",
+    "task_management",
+    "dashboard",
+    "ci_cd"
+  ],
+  "user_journeys": [
+    {
+      "name": "Inscription et connexion",
+      "steps": [
+        "L'utilisateur accède à la page de login ou d'inscription.",
+        "Il remplit le formulaire et soumet ses informations.",
+        "Le système valide les données et retourne un token JWT.",
+        "L'utilisateur est redirigé vers le tableau de bord."
+      ]
+    },
+    {
+      "name": "Gestion des tâches",
+      "steps": [
+        "L'utilisateur accède au tableau de bord.",
+        "Il filtre les tâches par statut ou priorité.",
+        "Il crée une nouvelle tâche ou modifie/supprime une tâche existante.",
+        "Le système met à jour la base de données et rafraîchit l'UI."
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id (Integer, Primary Key)",
+        "email (String, Unique)",
+        "hashed_password (String)",
+        "full_name (String, nullable)",
+        "created_at (DateTime)"
+      ],
+      "relations": [
+        "One-to-Many avec Task"
+      ]
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id (Integer, Primary Key)",
+        "title (String)",
+        "description (Text, nullable)",
+        "status (Enum: todo, in_progress, done)",
+        "priority (Enum: low, medium, high)",
+        "due_date (Date, nullable)",
+        "created_at (DateTime)",
+        "updated_at (DateTime)",
+        "user_id (Integer, Foreign Key)"
+      ],
+      "relations": [
+        "Many-to-One avec User"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "description": "Inscription utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Connexion utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "description": "Liste des tâches avec filtres",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "description": "Créer une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/{task_id}",
+      "description": "Récupérer une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{task_id}",
+      "description": "Mettre à jour une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{task_id}",
+      "description": "Supprimer une tâche",
+      "auth_required": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Vite + Tailwind CSS + React Router v6",
+    "backend": "FastAPI (Python 3.10) + SQLAlchemy + Pydantic",
+    "database": "PostgreSQL 15",
+    "auth": "JWT avec python-jose et passlib (bcrypt)",
+    "cache": "none",
+    "message_broker": "none",
+    "container": "Docker + Docker Compose + Nginx (frontend)",
+    "cloud": "Déploiement local pour développement, CI/CD pour production (GitHub Actions)"
+  },
+  "dev_instructions": {
+    "database": "Oumeyma, crée les modèles SQLAlchemy pour User et Task avec les champs spécifiés. Implémente les relations One-to-Many entre User et Task. Utilise Alembic pour les migrations. Configure les indexes sur user_id, status et priority pour optimiser les requêtes. Crée un utilisateur dédié et un schéma 'todo_app' dans PostgreSQL. Voici un exemple de modèle pour Task:\n\npython\nfrom sqlalchemy import Column, Integer, String, Text, Enum, Date, DateTime, ForeignKey\nfrom sqlalchemy.orm import relationship\nfrom database import Base\nimport enum\n\nclass TaskStatus(str, enum.Enum):\n    todo = 'todo'\n    in_progress = 'in_progress'\n    done = 'done'\n\nclass TaskPriority(str, enum.Enum):\n    low = 'low'\n    medium = 'medium'\n    high = 'high'\n\nclass Task(Base):\n    __tablename__ = 'task'\n    id = Column(Integer, primary_key=True, index=True)\n    title = Column(String(100), nullable=False)\n    description = Column(Text, nullable=True)\n    status = Column(Enum(TaskStatus), default=TaskStatus.todo, nullable=False)\n    priority = Column(Enum(TaskPriority), default=TaskPriority.medium, nullable=False)\n    due_date = Column(Date, nullable=True)\n    created_at = Column(DateTime, server_default=func.now())\n    updated_at = Column(DateTime, server_default=func.now(), onupdate=func.now())\n    user_id = Column(Integer, ForeignKey('user.id'), nullable=False)\n    user = relationship('User', back_populates='tasks')\n",
+    "backend": "Akram, implémente les endpoints FastAPI selon les spécifications. Voici la structure attendue:\n\n\nbackend/\n├── app/\n│   ├── __init__.py\n│   ├── main.py          # Point d'entrée FastAPI\n│   ├── config.py        # Configuration Pydantic\n│   ├── models/\n│   │   ├── __init__.py\n│   │   ├── user.py      # Modèle User\n│   │   └── task.py      # Modèle Task\n│   ├── routers/\n│   │   ├── __init__.py\n│   │   ├── auth.py      # Routes /auth\n│   │   └── tasks.py     # Routes /tasks\n│   ├── services/\n│   │   ├── __init__.py\n│   │   ├── users.py     # Logique métier utilisateurs\n│   │   └── tasks.py     # Logique métier tâches\n│   ├── utils/\n│   │   ├── __init__.py\n│   │   ├── jwt.py       # Utilitaires JWT\n│   │   └── security.py  # Hashage des mots de passe\n│   └── database.py     # Configuration SQLAlchemy\n├── tests/\n│   ├── test_auth.py\n│   └── test_tasks.py\n├── requirements.txt\n├── Dockerfile\n└── alembic.ini\n\n\nPour l'authentification, utilise le code suivant pour la génération des tokens:\n\npython\nfrom jose import JWTError, jwt\nfrom datetime import datetime, timedelta\nfrom config import settings\n\ndef create_access_token(data: dict, expires_delta: timedelta = None):\n    to_encode = data.copy()\n    if expires_delta:\n        expire = datetime.utcnow() + expires_delta\n    else:\n        expire = datetime.utcnow() + timedelta(minutes=15)\n    to_encode.update({'exp': expire})\n    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)\n    return encoded_jwt\n\n\nAjoute des tests unitaires avec pytest pour chaque endpoint. Configure les CORS dans main.py:\n\npython\nfrom fastapi.middleware.cors import CORSMiddleware\n\napp.add_middleware(\n    CORSMiddleware,\n    allow_origins=settings.CORS_ORIGINS,\n    allow_credentials=True,\n    allow_methods=['*'],\n    allow_headers=['*'],\n)\n",
+    "frontend": "Mactar, crée la structure suivante pour le frontend:\n\n\nfrontend/\n├── public/\n│   └── index.html\n├── src/\n│   ├── assets/\n│   ├── components/\n│   │   ├── auth/\n│   │   │   ├── LoginForm.tsx\n│   │   │   └── RegisterForm.tsx\n│   │   ├── tasks/\n│   │   │   ├── TaskList.tsx\n│   │   │   ├── TaskFilters.tsx\n│   │   │   └── TaskForm.tsx\n│   │   ├── layouts/\n│   │   │   ├── AuthLayout.tsx\n│   │   │   └── DashboardLayout.tsx\n│   │   └── ProtectedRoute.tsx\n│   ├── contexts/\n│   │   ├── AuthContext.tsx\n│   │   └── TaskContext.tsx\n│   ├── pages/\n│   │   ├── LoginPage.tsx\n│   │   ├── RegisterPage.tsx\n│   │   ├── DashboardPage.tsx\n│   │   └── NotFoundPage.tsx\n│   ├── services/\n│   │   ├── api.ts       # Configuration Axios\n│   │   ├── auth.ts      # Appels API pour l'auth\n│   │   └── tasks.ts     # Appels API pour les tâches\n│   ├── types/\n│   │   └── index.ts     # Types TypeScript\n│   ├── App.tsx\n│   ├── main.tsx\n│   └── vite-env.d.ts\n├── tailwind.config.js\n├── postcss.config.js\n├── package.json\n├── tsconfig.json\n├── vite.config.ts\n└── Dockerfile\n\n\nVoici un exemple pour le `AuthContext`:\n\ntypescript\nimport React, { createContext, useContext, useReducer, ReactNode } from 'react';\n\ntype AuthState = {\n    isAuthenticated: boolean;\n    user: User | null;\n    token: string | null;\n};\n\ntype AuthAction =\n    | { type: 'LOGIN'; payload: { user: User; token: string } }\n    | { type: 'LOGOUT' };\n\nconst AuthContext = createContext<{\n    state: AuthState;\n    dispatch: React.Dispatch<AuthAction>;\n}>({ state: initialState, dispatch: () => null });\n\nconst authReducer = (state: AuthState, action: AuthAction): AuthState => {\n    switch (action.type) {\n        case 'LOGIN':\n            localStorage.setItem('token', action.payload.token);\n            return {\n                ...state,\n                isAuthenticated: true,\n                user: action.payload.user,\n                token: action.payload.token,\n            };\n        case 'LOGOUT':\n            localStorage.removeItem('token');\n            return initialState;\n        default:\n            return state;\n    }\n};\n\nconst initialState: AuthState = {\n    isAuthenticated: false,\n    user: null,\n    token: localStorage.getItem('token'),\n};\n\nexport const AuthProvider = ({ children }: { children: ReactNode }) => {\n    const [state, dispatch] = useReducer(authReducer, initialState);\n    return (\n        <AuthContext.Provider value={{ state, dispatch }}>\n            {children}\n        </AuthContext.Provider>\n    );\n};\n\nexport const useAuth = () => useContext(AuthContext);\n\n\nPour les appels API, configure Axios avec des interceptors:\n\ntypescript\nimport axios from 'axios';\n\nconst api = axios.create({\n    baseURL: import.meta.env.VITE_API_BASE_URL,\n});\n\napi.interceptors.request.use((config) => {\n    const token = localStorage.getItem('token');\n    if (token) {\n        config.headers.Authorization = `Bearer ${token}`;\n    }\n    return config;\n});\n\napi.interceptors.response.use(\n    (response) => response,\n    (error) => {\n        if (error.response?.status === 401) {\n            localStorage.removeItem('token');\n            window.location.href = '/login';\n        }\n        return Promise.reject(error);\n    }\n);\n\nexport default api;\n"
+  },
+  "constraints": [
+    "Le frontend doit être responsive et compatible avec les navigateurs modernes (Chrome, Firefox, Edge, Safari).",
+    "Le backend doit gérer les erreurs de manière cohérente (codes HTTP appropriés et messages clairs).",
+    "Les mots de passe ne doivent jamais être stockés en clair.",
+    "Les tokens JWT doivent expirer après 30 minutes d'inactivité.",
+    "Les tests unitaires doivent couvrir au moins 80% du code backend et frontend.",
+    "Le pipeline CI/CD doit échouer si les tests ne passent pas."
+  ],
+  "estimated_files": {
+    "database": 3,
+    "backend": 12,
+    "frontend": 20
+  }
+}

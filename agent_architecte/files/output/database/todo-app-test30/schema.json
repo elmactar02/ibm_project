@@ -1,0 +1,133 @@
+{
+  "tables": [
+    {
+      "name": "users",
+      "sql": "CREATE TABLE IF NOT EXISTS users (id INTEGER PRIMARY KEY AUTOINCREMENT, email TEXT NOT NULL UNIQUE, hashed_password TEXT NOT NULL, is_active INTEGER DEFAULT 1, created_at TEXT NOT NULL DEFAULT (datetime('now')), deleted_at TEXT DEFAULT NULL)",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "constraints": [
+            "PRIMARY KEY AUTOINCREMENT"
+          ]
+        },
+        {
+          "name": "email",
+          "type": "TEXT",
+          "constraints": [
+            "NOT NULL",
+            "UNIQUE"
+          ]
+        },
+        {
+          "name": "hashed_password",
+          "type": "TEXT",
+          "constraints": [
+            "NOT NULL"
+          ]
+        },
+        {
+          "name": "is_active",
+          "type": "INTEGER",
+          "constraints": [
+            "DEFAULT 1"
+          ]
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "constraints": [
+            "NOT NULL",
+            "DEFAULT (datetime('now'))"
+          ]
+        },
+        {
+          "name": "deleted_at",
+          "type": "TEXT",
+          "constraints": [
+            "DEFAULT NULL"
+          ]
+        }
+      ],
+      "foreign_keys": []
+    },
+    {
+      "name": "tasks",
+      "sql": "CREATE TABLE IF NOT EXISTS tasks (id INTEGER PRIMARY KEY AUTOINCREMENT, title TEXT NOT NULL, description TEXT, status TEXT NOT NULL CHECK(status IN ('todo', 'in_progress', 'done')), priority TEXT NOT NULL CHECK(priority IN ('low', 'medium', 'high')), created_at TEXT NOT NULL DEFAULT (datetime('now')), updated_at TEXT NOT NULL DEFAULT (datetime('now')) ON CONFLICT REPLACE, user_id INTEGER NOT NULL, deleted_at TEXT DEFAULT NULL, FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE)",
+      "columns": [
+        {
+          "name": "id",
+          "type": "INTEGER",
+          "constraints": [
+            "PRIMARY KEY AUTOINCREMENT"
+          ]
+        },
+        {
+          "name": "title",
+          "type": "TEXT",
+          "constraints": [
+            "NOT NULL"
+          ]
+        },
+        {
+          "name": "description",
+          "type": "TEXT",
+          "constraints": []
+        },
+        {
+          "name": "status",
+          "type": "TEXT",
+          "constraints": [
+            "NOT NULL",
+            "CHECK(status IN ('todo', 'in_progress', 'done'))"
+          ]
+        },
+        {
+          "name": "priority",
+          "type": "TEXT",
+          "constraints": [
+            "NOT NULL",
+            "CHECK(priority IN ('low', 'medium', 'high'))"
+          ]
+        },
+        {
+          "name": "created_at",
+          "type": "TEXT",
+          "constraints": [
+            "NOT NULL",
+            "DEFAULT (datetime('now'))"
+          ]
+        },
+        {
+          "name": "updated_at",
+          "type": "TEXT",
+          "constraints": [
+            "NOT NULL",
+            "DEFAULT (datetime('now')) ON CONFLICT REPLACE"
+          ]
+        },
+        {
+          "name": "user_id",
+          "type": "INTEGER",
+          "constraints": [
+            "NOT NULL"
+          ]
+        },
+        {
+          "name": "deleted_at",
+          "type": "TEXT",
+          "constraints": [
+            "DEFAULT NULL"
+          ]
+        }
+      ],
+      "foreign_keys": [
+        {
+          "column": "user_id",
+          "references": "users(id)",
+          "on_delete": "CASCADE"
+        }
+      ]
+    }
+  ]
+}

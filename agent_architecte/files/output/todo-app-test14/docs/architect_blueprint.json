@@ -1,0 +1,280 @@
+{
+  "project": {
+    "name": "todo-app-test14",
+    "description": "Application full-stack de gestion de tâches avec authentification JWT et filtres avancés",
+    "complexity": "medium"
+  },
+  "modules": [
+    "auth",
+    "tasks",
+    "dashboard",
+    "ci_cd"
+  ],
+  "user_journeys": [
+    {
+      "name": "Inscription et première connexion",
+      "steps": [
+        "L'utilisateur accède à la page d'inscription",
+        "Remplit le formulaire avec email et mot de passe",
+        "Soumet le formulaire et est redirigé vers le dashboard",
+        "Le JWT est stocké dans les cookies"
+      ]
+    },
+    {
+      "name": "Gestion des tâches",
+      "steps": [
+        "L'utilisateur connecté accède au dashboard",
+        "Crée une nouvelle tâche avec titre, description et priorité",
+        "Filtre les tâches par statut 'todo'",
+        "Modifie une tâche existante pour changer son statut",
+        "Supprime une tâche terminée"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id (UUID)",
+        "email (string)",
+        "hashed_password (string)",
+        "created_at (datetime)"
+      ],
+      "relations": []
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id (UUID)",
+        "title (string)",
+        "description (text, nullable)",
+        "status (enum: todo/in_progress/done)",
+        "priority (enum: low/medium/high)",
+        "due_date (date, nullable)",
+        "user_id (UUID, foreign key)",
+        "created_at (datetime)",
+        "updated_at (datetime)"
+      ],
+      "relations": [
+        "Many-to-One avec User"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "description": "Inscription d'un nouvel utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Connexion d'un utilisateur existant",
+      "auth_required": false
+    },
+    {
+      "method": "GET",
+      "path": "/tasks",
+      "description": "Liste des tâches avec filtres optionnels (status, priority)",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks",
+      "description": "Création d'une nouvelle tâche",
+      "auth_required": true
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{task_id}",
+      "description": "Modification d'une tâche existante",
+      "auth_required": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{task_id}",
+      "description": "Suppression d'une tâche",
+      "auth_required": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + TypeScript + Vite + Tailwind CSS + DaisyUI",
+    "backend": "FastAPI (Python 3.10) + SQLAlchemy + Pydantic",
+    "database": "PostgreSQL 15",
+    "auth": "JWT avec python-jose + passlib (bcrypt)",
+    "cache": "none",
+    "message_broker": "none",
+    "container": "Docker + Docker Compose",
+    "cloud": "Déploiement local pour dev, Render/Railway pour backend, Vercel pour frontend"
+  },
+  "dev_instructions": {
+    "database": {
+      "steps": [
+        "1. Créer les modèles SQLAlchemy dans `models.py` :",
+        "   - Modèle User avec id (UUID), email (String unique), hashed_password (String), created_at (DateTime)",
+        "   - Modèle Task avec id (UUID), title (String), description (Text nullable), status (Enum), priority (Enum), due_date (Date nullable), user_id (UUID foreign key), created_at (DateTime), updated_at (DateTime)",
+        "2. Configurer la base de données dans `database.py` avec :",
+        "   - Connexion async avec asyncpg",
+        "   - Session maker pour SQLAlchemy",
+        "   - Fonction get_db pour injection de dépendance",
+        "3. Créer les migrations avec Alembic :",
+        "   - Initialiser Alembic si ce n'est pas déjà fait",
+        "   - Générer une migration initiale avec `alembic revision --autogenerate -m 'Initial migration'`",
+        "   - Appliquer la migration avec `alembic upgrade head`",
+        "4. Créer les indexes dans une migration séparée :",
+        "   - Index sur task(user_id, status)",
+        "   - Index sur task(user_id, priority)",
+        "5. Configurer les variables d'environnement pour la connexion à la base de données"
+      ],
+      "files_to_create": [
+        "models.py",
+        "database.py",
+        "alembic.ini",
+        "alembic/env.py",
+        "alembic/versions/*.py (migrations)"
+      ]
+    },
+    "backend": {
+      "steps": [
+        "1. Configurer FastAPI dans `main.py` :",
+        "   - Créer l'application FastAPI",
+        "   - Ajouter le middleware CORS",
+        "   - Inclure les routers (auth et tasks)",
+        "2. Implémenter le router d'authentification dans `auth.py` :",
+        "   - Endpoint POST /register avec validation des données (email valide, mot de passe fort)",
+        "   - Endpoint POST /login avec vérification des identifiants et génération du JWT",
+        "   - Utiliser python-jose pour générer les tokens et passlib pour hacher les mots de passe",
+        "3. Implémenter le router des tâches dans `tasks.py` :",
+        "   - Endpoint GET /tasks avec paramètres de filtre (status, priority)",
+        "   - Endpoint POST /tasks pour création avec validation des données",
+        "   - Endpoint PUT /tasks/{task_id} pour modification",
+        "   - Endpoint DELETE /tasks/{task_id} pour suppression",
+        "   - Vérification de l'appartenance de la tâche à l'utilisateur connecté",
+        "4. Créer les services dans `auth_service.py` et `tasks_service.py` :",
+        "   - Logique métier pour l'authentification (vérification des identifiants, génération de tokens)",
+        "   - Logique métier pour les tâches (CRUD, validation des données)",
+        "5. Configurer les modèles Pydantic dans `schemas.py` :",
+        "   - UserCreate, UserInDB, Token, TokenData pour l'authentification",
+        "   - TaskCreate, TaskUpdate, TaskInDB pour les tâches",
+        "6. Implémenter les tests unitaires avec pytest :",
+        "   - Tests pour les endpoints d'authentification",
+        "   - Tests pour les endpoints de tâches",
+        "   - Tests pour les services",
+        "7. Configurer les variables d'environnement dans `config.py` :",
+        "   - SECRET_KEY pour JWT",
+        "   - DATABASE_URL pour PostgreSQL",
+        "   - Paramètres CORS",
+        "8. Ajouter la documentation Swagger/OpenAPI avec des exemples de requêtes"
+      ],
+      "files_to_create": [
+        "main.py",
+        "auth.py",
+        "tasks.py",
+        "auth_service.py",
+        "tasks_service.py",
+        "schemas.py",
+        "config.py",
+        "tests/test_auth.py",
+        "tests/test_tasks.py"
+      ]
+    },
+    "frontend": {
+      "steps": [
+        "1. Configurer le projet Vite avec React et TypeScript :",
+        "   - Initialiser le projet avec `npm create vite@latest todo-app-test14 --template react-ts`",
+        "   - Installer les dépendances : react-router-dom, axios, zustand, react-hook-form, zod, tailwindcss, daisyui",
+        "2. Créer la structure des dossiers :",
+        "   - `src/components` pour les composants réutilisables",
+        "   - `src/pages` pour les pages",
+        "   - `src/context` pour le contexte d'authentification",
+        "   - `src/store` pour le state management (Zustand)",
+        "   - `src/api` pour les appels API",
+        "   - `src/types` pour les types TypeScript",
+        "3. Implémenter le contexte d'authentification :",
+        "   - Créer un contexte avec useReducer pour gérer l'état d'authentification",
+        "   - Implémenter les fonctions de login, logout et vérification du token",
+        "   - Créer un hook personnalisé useAuth pour accéder au contexte",
+        "4. Créer les composants réutilisables :",
+        "   - AuthLayout pour les pages d'authentification",
+        "   - DashboardLayout pour les pages protégées",
+        "   - TaskList pour afficher la liste des tâches",
+        "   - TaskItem pour afficher une tâche individuelle avec actions",
+        "   - TaskForm pour créer/modifier une tâche",
+        "   - AuthForm pour l'inscription/connexion",
+        "   - FilterBar pour filtrer les tâches par statut et priorité",
+        "5. Implémenter les pages :",
+        "   - LoginPage avec formulaire de connexion",
+        "   - RegisterPage avec formulaire d'inscription",
+        "   - DashboardPage avec TaskList et FilterBar",
+        "   - TaskCreatePage avec TaskForm",
+        "   - TaskEditPage avec TaskForm pré-rempli",
+        "6. Configurer le routing avec React Router :",
+        "   - Routes publiques (/login, /register)",
+        "   - Routes protégées (/dashboard, /tasks/*) avec vérification de l'authentification",
+        "7. Implémenter les appels API avec Axios :",
+        "   - Créer un client Axios avec baseURL et interceptors pour ajouter le JWT",
+        "   - Implémenter les fonctions pour chaque endpoint (auth, tasks)",
+        "8. Configurer le state management avec Zustand :",
+        "   - Créer un store pour les tâches avec actions pour charger, ajouter, modifier, supprimer",
+        "   - Synchroniser le store avec les appels API",
+        "9. Ajouter la validation des formulaires avec React Hook Form et Zod :",
+        "   - Schémas de validation pour les formulaires d'authentification et de tâches",
+        "   - Messages d'erreur personnalisés",
+        "10. Styliser l'application avec Tailwind CSS et DaisyUI :",
+        "    - Configurer Tailwind dans le projet",
+        "    - Utiliser les composants DaisyUI pour les boutons, formulaires, etc.",
+        "    - Créer un thème personnalisé si nécessaire",
+        "11. Implémenter les tests avec Jest et React Testing Library :",
+        "    - Tests pour les composants",
+        "    - Tests pour les pages",
+        "    - Tests pour les hooks personnalisés",
+        "12. Configurer les builds de production :",
+        "    - Optimisation du bundle avec Vite",
+        "    - Configuration des variables d'environnement",
+        "    - Génération des types pour les variables d'environnement"
+      ],
+      "files_to_create": [
+        "src/main.tsx",
+        "src/App.tsx",
+        "src/components/AuthLayout.tsx",
+        "src/components/DashboardLayout.tsx",
+        "src/components/TaskList.tsx",
+        "src/components/TaskItem.tsx",
+        "src/components/TaskForm.tsx",
+        "src/components/AuthForm.tsx",
+        "src/components/FilterBar.tsx",
+        "src/pages/LoginPage.tsx",
+        "src/pages/RegisterPage.tsx",
+        "src/pages/DashboardPage.tsx",
+        "src/pages/TaskCreatePage.tsx",
+        "src/pages/TaskEditPage.tsx",
+        "src/context/AuthContext.tsx",
+        "src/hooks/useAuth.ts",
+        "src/store/taskStore.ts",
+        "src/api/auth.ts",
+        "src/api/tasks.ts",
+        "src/types/auth.ts",
+        "src/types/task.ts",
+        "src/schemas/auth.ts",
+        "src/schemas/task.ts",
+        "src/utils/api.ts",
+        "tailwind.config.js",
+        "postcss.config.js"
+      ]
+    }
+  },
+  "constraints": [
+    "Le JWT doit être stocké dans des httpOnly cookies pour des raisons de sécurité",
+    "Les mots de passe doivent être hachés avec bcrypt avant stockage",
+    "Les tâches ne doivent être accessibles/modifiables que par leur propriétaire",
+    "Les filtres de tâches doivent être implémentés côté serveur pour des performances optimales",
+    "Le frontend doit être responsive et fonctionner sur mobile",
+    "Le pipeline CI/CD doit exécuter les tests avant tout déploiement"
+  ],
+  "estimated_files": {
+    "database": 5,
+    "backend": 12,
+    "frontend": 25
+  }
+}

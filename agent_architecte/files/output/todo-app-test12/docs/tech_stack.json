@@ -1,0 +1,143 @@
+{
+  "database": {
+    "technology": "PostgreSQL 15",
+    "models": [
+      {
+        "name": "User",
+        "fields": {
+          "id": "Integer (Primary Key)",
+          "email": "String (Unique, 255 chars)",
+          "hashed_password": "String (255 chars)",
+          "created_at": "DateTime (default now)"
+        }
+      },
+      {
+        "name": "Task",
+        "fields": {
+          "id": "Integer (Primary Key)",
+          "title": "String (255 chars)",
+          "description": "Text (nullable)",
+          "status": "Enum('todo', 'in_progress', 'done')",
+          "priority": "Enum('low', 'medium', 'high')",
+          "created_at": "DateTime (default now)",
+          "updated_at": "DateTime (on update)",
+          "user_id": "Integer (Foreign Key -> User.id)"
+        },
+        "relations": [
+          "Many-to-One avec User"
+        ]
+      }
+    ],
+    "instructions": "1. Cr\u00e9er les tables avec SQLAlchemy ORM. 2. Configurer les indexes sur user_id et status pour optimiser les filtres. 3. Utiliser Alembic pour les migrations. 4. Pr\u00e9voir un script de seed pour les tests."
+  },
+  "backend": {
+    "technology": "FastAPI + Python 3.10",
+    "endpoints": [
+      {
+        "method": "POST",
+        "path": "/auth/register",
+        "description": "Inscription utilisateur (email + mot de passe)",
+        "auth_required": false
+      },
+      {
+        "method": "POST",
+        "path": "/auth/login",
+        "description": "Connexion utilisateur (retourne JWT)",
+        "auth_required": false
+      },
+      {
+        "method": "GET",
+        "path": "/tasks",
+        "description": "Liste des t\u00e2ches avec filtres (status, priority)",
+        "auth_required": true
+      },
+      {
+        "method": "POST",
+        "path": "/tasks",
+        "description": "Cr\u00e9er une t\u00e2che",
+        "auth_required": true
+      },
+      {
+        "method": "PUT",
+        "path": "/tasks/{task_id}",
+        "description": "Modifier une t\u00e2che",
+        "auth_required": true
+      },
+      {
+        "method": "DELETE",
+        "path": "/tasks/{task_id}",
+        "description": "Supprimer une t\u00e2che",
+        "auth_required": true
+      }
+    ],
+    "auth": "JWT avec python-jose (HS256) + passlib (bcrypt pour hachage). Dur\u00e9e token: 1h. Refresh tokens non impl\u00e9ment\u00e9s dans cette version.",
+    "structure": {
+      "routers": [
+        "auth.py",
+        "tasks.py"
+      ],
+      "services": [
+        "auth_service.py",
+        "task_service.py"
+      ],
+      "models": [
+        "schemas.py (Pydantic)",
+        "models.py (SQLAlchemy)"
+      ],
+      "config": [
+        "config.py (variables d'environnement)"
+      ]
+    },
+    "instructions": "1. Impl\u00e9menter les routers avec d\u00e9pendances FastAPI pour l'auth. 2. Valider les donn\u00e9es entrantes avec Pydantic. 3. G\u00e9rer les erreurs avec HTTPException. 4. Documenter les endpoints avec OpenAPI (Swagger). 5. Pr\u00e9voir des tests unitaires avec pytest."
+  },
+  "frontend": {
+    "technology": "React 18 + TypeScript + Vite",
+    "pages": [
+      {
+        "name": "LoginPage",
+        "components": [
+          "LoginForm",
+          "AuthLayout"
+        ]
+      },
+      {
+        "name": "RegisterPage",
+        "components": [
+          "RegisterForm",
+          "AuthLayout"
+        ]
+      },
+      {
+        "name": "DashboardPage",
+        "components": [
+          "TaskList",
+          "TaskFilters",
+          "TaskForm",
+          "Navbar"
+        ]
+      }
+    ],
+    "components": {
+      "shared": [
+        "Button",
+        "Input",
+        "Select",
+        "Modal"
+      ],
+      "task": [
+        "TaskCard",
+        "TaskStatusBadge",
+        "PriorityIndicator"
+      ]
+    },
+    "routing": "React Router v6 avec routes prot\u00e9g\u00e9es (PrivateRoute).",
+    "state_management": "React Context pour l'auth + useState/useReducer pour les t\u00e2ches.",
+    "styling": "Tailwind CSS pour le design syst\u00e8me.",
+    "instructions": "1. Cr\u00e9er les pages avec layout responsive. 2. Impl\u00e9menter les formulaires avec validation (React Hook Form + Zod). 3. G\u00e9rer l'\u00e9tat global de l'auth avec Context API. 4. Pr\u00e9voir des tests avec Jest + React Testing Library. 5. Configurer ESLint + Prettier pour le formatage."
+  },
+  "auth": "JWT (HS256) avec stockage dans httpOnly cookies. Rotation des cl\u00e9s secr\u00e8tes via variables d'environnement.",
+  "cache": "None (\u00e0 ajouter ult\u00e9rieurement si besoin avec Redis)",
+  "message_broker": "None",
+  "container": "Docker + Docker Compose pour le d\u00e9veloppement local. Multi-stage build pour la production.",
+  "cloud": "D\u00e9ploiement sur Render ou Railway (PostgreSQL manag\u00e9). CI/CD avec GitHub Actions."
+}

@@ -1,0 +1,16 @@
+{
+  "seeders": [
+    {
+      "table": "users",
+      "description": "5 utilisateurs avec emails réalistes et mots de passe hashés de test",
+      "sql": "INSERT INTO users (email, hashed_password, created_at, deleted_at) VALUES ('jean.dupont@entreprise.fr', 'hashed_password_test', '2024-01-10 08:30:00', NULL), ('marie.martin@societe.com', 'hashed_password_test', '2024-01-11 09:15:00', NULL), ('pierre.lefevre@startup.io', 'hashed_password_test', '2024-01-12 14:20:00', NULL), ('claire.bernard@corporate.net', 'hashed_password_test', '2024-01-13 16:45:00', NULL), ('lucas.robert@agence.fr', 'hashed_password_test', '2024-01-14 11:00:00', NULL)",
+      "count": 5
+    },
+    {
+      "table": "tasks",
+      "description": "5 tâches variées avec statuts et priorités réalistes",
+      "sql": "INSERT INTO tasks (title, description, status, priority, created_at, updated_at, user_id, deleted_at) VALUES ('Finaliser le rapport trimestriel', 'Préparer les slides pour la réunion du 20/01', 'IN_PROGRESS', 'HIGH', '2024-01-15 09:00:00', '2024-01-16 14:30:00', 1, NULL), ('Mettre à jour la documentation API', NULL, 'TODO', 'MEDIUM', '2024-01-15 10:15:00', NULL, 2, NULL), ('Corriger bug #42 sur le frontend', 'Le bouton de validation ne répond pas sur mobile', 'IN_PROGRESS', 'HIGH', '2024-01-14 11:20:00', '2024-01-15 09:45:00', 3, NULL), ('Planifier la rétrospective sprint', 'Envoyer l\\'invitation à l\\'équipe', 'DONE', 'LOW', '2024-01-10 15:30:00', '2024-01-12 10:00:00', 1, NULL), ('Revoir les permissions utilisateurs', 'Vérifier les accès admin pour les nouveaux membres', 'TODO', 'MEDIUM', '2024-01-16 08:45:00', NULL, 4, NULL)",
+      "count": 5
+    }
+  ]
+}

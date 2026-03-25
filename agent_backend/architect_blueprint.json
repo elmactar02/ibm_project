@@ -1,0 +1,508 @@
+{
+  "project": {
+    "name": "my-app",
+    "description": "Application de gestion de tâches collaborative avec suivi, assignation et historique",
+    "complexity": "medium"
+  },
+  "modules": [
+    "auth",
+    "tasks",
+    "comments",
+    "history"
+  ],
+  "user_journeys": [
+    {
+      "name": "Création et gestion d'une tâche",
+      "steps": [
+        "L'utilisateur se connecte via la page de login",
+        "Accède au tableau de bord et clique sur 'Nouvelle tâche'",
+        "Remplit les champs (titre, description, priorité, date d'échéance) et assigne la tâche à un utilisateur",
+        "Valide la création → la tâche apparaît dans la liste",
+        "Clique sur la tâche pour voir les détails et ajoute un commentaire"
+      ]
+    },
+    {
+      "name": "Filtrage des tâches",
+      "steps": [
+        "L'utilisateur sélectionne un filtre (ex: 'Priorité: Haute' ou 'Statut: En cours')",
+        "Le frontend envoie une requête GET avec les paramètres de filtre",
+        "Le backend retourne les tâches correspondantes, affichées dans le tableau de bord"
+      ]
+    }
+  ],
+  "entities": [
+    {
+      "name": "User",
+      "fields": [
+        "id",
+        "email",
+        "hashed_password",
+        "full_name",
+        "is_active",
+        "created_at"
+      ],
+      "relations": [
+        "One-to-Many avec Task (créateur)",
+        "One-to-Many avec Task (assigné)",
+        "One-to-Many avec Comment"
+      ]
+    },
+    {
+      "name": "Task",
+      "fields": [
+        "id",
+        "title",
+        "description",
+        "priority (LOW/MEDIUM/HIGH)",
+        "due_date",
+        "status (TODO/IN_PROGRESS/DONE)",
+        "created_at",
+        "updated_at",
+        "creator_id",
+        "assignee_id"
+      ],
+      "relations": [
+        "Many-to-One avec User (créateur)",
+        "Many-to-One avec User (assigné)",
+        "One-to-Many avec Comment",
+        "One-to-Many avec TaskHistory"
+      ]
+    },
+    {
+      "name": "Comment",
+      "fields": [
+        "id",
+        "content",
+        "created_at",
+        "task_id",
+        "user_id"
+      ],
+      "relations": [
+        "Many-to-One avec Task",
+        "Many-to-One avec User"
+      ]
+    },
+    {
+      "name": "TaskHistory",
+      "fields": [
+        "id",
+        "task_id",
+        "changed_field",
+        "old_value",
+        "new_value",
+        "changed_at",
+        "changed_by"
+      ],
+      "relations": [
+        "Many-to-One avec Task",
+        "Many-to-One avec User (changed_by)"
+      ]
+    }
+  ],
+  "api_endpoints": [
+    {
+      "method": "POST",
+      "path": "/auth/register",
+      "description": "Inscription d'un nouvel utilisateur",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/login",
+      "description": "Connexion utilisateur (retourne JWT)",
+      "auth_required": false
+    },
+    {
+      "method": "POST",
+      "path": "/auth/refresh",
+      "description": "Rafraîchissement du JWT avec refresh token",
+      "auth_required": false
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/",
+      "description": "Liste toutes les tâches (filtrable par statut/priorité)",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks/",
+      "description": "Création d'une nouvelle tâche",
+      "auth_required": true
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/{id}",
+      "description": "Détail d'une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "PUT",
+      "path": "/tasks/{id}",
+      "description": "Mise à jour d'une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "DELETE",
+      "path": "/tasks/{id}",
+      "description": "Suppression d'une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "POST",
+      "path": "/tasks/{id}/comments/",
+      "description": "Ajout d'un commentaire sur une tâche",
+      "auth_required": true
+    },
+    {
+      "method": "GET",
+      "path": "/tasks/{id}/history/",
+      "description": "Historique des modifications d'une tâche",
+      "auth_required": true
+    }
+  ],
+  "tech_stack": {
+    "frontend": "React 18 + Vite + TypeScript + TailwindCSS + React Router 6",
+    "backend": "FastAPI + Python 3.11 + Pydantic 2.0 + SQLAlchemy 2.0",
+    "database": "SQLite 3 (dev) / PostgreSQL 16 (prod) + Alembic pour migrations",
+    "auth": "JWT avec python-jose + passlib (bcrypt) + OAuth2PasswordBearer",
+    "cache": "Redis 7 + redis-py",
+    "message_broker": "none",
+    "container": "Docker + Docker Compose (multi-stage builds)",
+    "cloud": "local (dev) / compatible cloud (prod)"
+  },
+  "dev_instructions": {
+    "database": {
+      "Oumeyma": {
+        "modèles_à_créer": [
+          {
+            "nom": "User",
+            "champs": {
+              "id": "Integer (Primary Key)",
+              "email": "String (unique, index)",
+              "hashed_password": "String",
+              "full_name": "String",
+              "is_active": "Boolean (default=True)",
+              "created_at": "DateTime (default=datetime.utcnow)"
+            },
+            "relations": [
+              "One-to-Many avec Task (creator_id)",
+              "One-to-Many avec Task (assignee_id)",
+              "One-to-Many avec Comment (user_id)"
+            ]
+          },
+          {
+            "nom": "Task",
+            "champs": {
+              "id": "Integer (Primary Key)",
+              "title": "String (max_length=100)",
+              "description": "Text",
+              "priority": "Enum('LOW', 'MEDIUM', 'HIGH')",
+              "due_date": "DateTime (nullable)",
+              "status": "Enum('TODO', 'IN_PROGRESS', 'DONE') (default='TODO')",
+              "created_at": "DateTime (default=datetime.utcnow)",
+              "updated_at": "DateTime (default=datetime.utcnow, onupdate=datetime.utcnow)",
+              "creator_id": "Integer (ForeignKey: User.id)",
+              "assignee_id": "Integer (ForeignKey: User.id, nullable)"
+            },
+            "relations": [
+              "Many-to-One avec User (creator_id)",
+              "Many-to-One avec User (assignee_id)",
+              "One-to-Many avec Comment (task_id)",
+              "One-to-Many avec TaskHistory (task_id)"
+            ]
+          },
+          {
+            "nom": "Comment",
+            "champs": {
+              "id": "Integer (Primary Key)",
+              "content": "Text",
+              "created_at": "DateTime (default=datetime.utcnow)",
+              "task_id": "Integer (ForeignKey: Task.id)",
+              "user_id": "Integer (ForeignKey: User.id)"
+            },
+            "relations": [
+              "Many-to-One avec Task (task_id)",
+              "Many-to-One avec User (user_id)"
+            ]
+          },
+          {
+            "nom": "TaskHistory",
+            "champs": {
+              "id": "Integer (Primary Key)",
+              "task_id": "Integer (ForeignKey: Task.id)",
+              "changed_field": "String",
+              "old_value": "String (nullable)",
+              "new_value": "String (nullable)",
+              "changed_at": "DateTime (default=datetime.utcnow)",
+              "changed_by": "Integer (ForeignKey: User.id)"
+            },
+            "relations": [
+              "Many-to-One avec Task (task_id)",
+              "Many-to-One avec User (changed_by)"
+            ]
+          }
+        ],
+        "migrations": "Utiliser Alembic pour générer les migrations après création des modèles. Exemple de commande : `alembic revision --autogenerate -m 'create_tables'`",
+        "triggers": "Créer un trigger SQL pour générer automatiquement les entrées TaskHistory lors des mises à jour de Task. Exemple pour PostgreSQL : `CREATE TRIGGER task_history_trigger AFTER UPDATE ON task FOR EACH ROW EXECUTE FUNCTION log_task_history();`",
+        "indexes": "Ajouter des indexes sur les champs fréquemment filtrés : Task.status, Task.priority, Task.assignee_id, Task.creator_id"
+      }
+    },
+    "backend": {
+      "Akram": {
+        "structure_projet": {
+          "dossiers": [
+            "app/",
+            "  ├── api/ (routers FastAPI)",
+            "  │   ├── auth.py",
+            "  │   ├── tasks.py",
+            "  │   ├── comments.py",
+            "  │   └── history.py",
+            "  ├── core/ (config, sécurité)",
+            "  │   ├── config.py (variables d'environnement)",
+            "  │   ├── security.py (JWT, hashing)",
+            "  │   └── cache.py (Redis)",
+            "  ├── db/ (base de données)",
+            "  │   ├── models.py (SQLAlchemy)",
+            "  │   ├── session.py (gestion des sessions)",
+            "  │   └── base.py (Base SQLAlchemy)",
+            "  ├── schemas/ (Pydantic)",
+            "  │   ├── user.py",
+            "  │   ├── task.py",
+            "  │   ├── comment.py",
+            "  │   └── history.py",
+            "  └── main.py (point d'entrée FastAPI)"
+          ]
+        },
+        "endpoints_à_implémenter": [
+          {
+            "router": "auth.py",
+            "endpoints": [
+              {
+                "path": "/register",
+                "method": "POST",
+                "description": "Inscription utilisateur. Valider l'email (format) et le mot de passe (min 8 caractères). Hasher le mot de passe avec bcrypt. Retourner un JWT si succès.",
+                "exemple_request": {
+                  "email": "user@example.com",
+                  "password": "securepassword123",
+                  "full_name": "John Doe"
+                },
+                "exemple_response": {
+                  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+                  "token_type": "bearer"
+                }
+              },
+              {
+                "path": "/login",
+                "method": "POST",
+                "description": "Connexion utilisateur. Vérifier le mot de passe avec bcrypt. Générer un JWT (durée 1h) et un refresh token (durée 7j, HTTP-only cookie).",
+                "exemple_request": {
+                  "username": "user@example.com",
+                  "password": "securepassword123"
+                }
+              },
+              {
+                "path": "/refresh",
+                "method": "POST",
+                "description": "Rafraîchir le JWT avec le refresh token (HTTP-only cookie). Invalider l'ancien refresh token après utilisation."
+              }
+            ]
+          },
+          {
+            "router": "tasks.py",
+            "endpoints": [
+              {
+                "path": "/tasks/",
+                "method": "GET",
+                "description": "Lister les tâches avec filtrage. Paramètres optionnels : status, priority, assignee_id. Vérifier les permissions (seul le créateur ou l'assigné peut voir la tâche). Utiliser Redis pour cacher les résultats des requêtes fréquentes (ex: tâches de l'utilisateur connecté).",
+                "exemple_response": [
+                  {
+                    "id": 1,
+                    "title": "Implémenter l'API",
+                    "status": "IN_PROGRESS",
+                    "priority": "HIGH",
+                    "assignee": {
+                      "id": 2,
+                      "full_name": "Jane Doe"
+                    }
+                  }
+                ]
+              },
+              {
+                "path": "/tasks/",
+                "method": "POST",
+                "description": "Créer une tâche. Valider les champs (ex: due_date > now). Assigner automatiquement le créateur comme assignee si non spécifié. Générer une entrée TaskHistory pour la création."
+              },
+              {
+                "path": "/tasks/{id}",
+                "method": "PUT",
+                "description": "Mettre à jour une tâche. Vérifier que l'utilisateur est le créateur ou l'assigné. Générer des entrées TaskHistory pour chaque champ modifié."
+              }
+            ]
+          },
+          {
+            "router": "comments.py",
+            "endpoints": [
+              {
+                "path": "/tasks/{id}/comments/",
+                "method": "POST",
+                "description": "Ajouter un commentaire à une tâche. Vérifier que l'utilisateur a accès à la tâche (créateur ou assigné)."
+              }
+            ]
+          },
+          {
+            "router": "history.py",
+            "endpoints": [
+              {
+                "path": "/tasks/{id}/history/",
+                "method": "GET",
+                "description": "Récupérer l'historique des modifications d'une tâche. Trier par changed_at (desc)."
+              }
+            ]
+          }
+        ],
+        "authentification": {
+          "jwt": "Utiliser `python-jose` pour générer et valider les JWT. Clé secrète stockée dans `APP_SECRET_KEY` (variable d'environnement).",
+          "permissions": "Créer un décorateur `@permission_required` pour vérifier que l'utilisateur a accès à la ressource (ex: `@permission_required('task', 'update')`).",
+          "refresh_tokens": "Stocker les refresh tokens en base de données (table `refresh_tokens` avec champs `user_id`, `token`, `expires_at`). Invalider les tokens lors de la déconnexion."
+        },
+        "documentation": "FastAPI génère automatiquement la documentation OpenAPI (Swagger UI à `/docs` et ReDoc à `/redoc`). Ajouter des descriptions détaillées pour chaque endpoint et schéma Pydantic."
+      }
+    },
+    "frontend": {
+      "Mactar": {
+        "structure_projet": {
+          "dossiers": [
+            "src/",
+            "  ├── assets/ (images, styles globaux)",
+            "  ├── components/ (composants réutilisables)",
+            "  │   ├── auth/ (LoginForm, RegisterForm)",
+            "  │   ├── tasks/ (TaskList, TaskDetail, TaskForm, TaskFilters)",
+            "  │   ├── comments/ (CommentList, CommentForm)",
+            "  │   ├── history/ (HistoryTimeline)",
+            "  │   └── ui/ (Button, Input, Modal, etc.)",
+            "  ├── pages/ (pages React Router)",
+            "  │   ├── DashboardPage.tsx",
+            "  │   ├── TaskDetailPage.tsx",
+            "  │   ├── LoginPage.tsx",
+            "  │   └── RegisterPage.tsx",
+            "  ├── hooks/ (hooks custom)",
+            "  │   ├── useAuth.ts (gestion de l'authentification)",
+            "  │   ├── useTasks.ts (logique métier des tâches)",
+            "  │   └── useApi.ts (appels API)",
+            "  ├── context/ (contextes React)",
+            "  │   └── AuthContext.tsx",
+            "  ├── types/ (types TypeScript)",
+            "  │   ├── api.ts (types des réponses API)",
+            "  │   └── models.ts (User, Task, Comment, etc.)",
+            "  ├── utils/ (fonctions utilitaires)",
+            "  │   └── apiClient.ts (axios instance)",
+            "  ├── App.tsx (router principal)",
+            "  └── main.tsx (point d'entrée)"
+          ]
+        },
+        "composants_à_créer": [
+          {
+            "nom": "TaskList",
+            "description": "Affiche la liste des tâches sous forme de tableau ou de cartes. Permet le filtrage par statut/priorité. Utilise `useTasks` pour récupérer les données. Chaque tâche est un lien vers sa page de détail.",
+            "props": [
+              "tasks",
+              "onFilterChange",
+              "loading"
+            ],
+            "état_interne": [
+              "filters (status, priority, assignee)"
+            ]
+          },
+          {
+            "nom": "TaskDetail",
+            "description": "Page de détail d'une tâche. Affiche le titre, description, priorité, statut, assigné, et date d'échéance. Contient un composant `CommentSection` pour les commentaires et un `HistoryTimeline` pour l'historique.",
+            "props": [
+              "taskId"
+            ],
+            "état_interne": [
+              "task",
+              "comments",
+              "history",
+              "loading"
+            ]
+          },
+          {
+            "nom": "TaskForm",
+            "description": "Formulaire pour créer/modifier une tâche. Champs : titre (obligatoire), description, priorité (select), date d'échéance (date picker), assigné (select utilisateurs). Validation des champs avant soumission.",
+            "props": [
+              "onSubmit",
+              "initialData (pour édition)"
+            ]
+          },
+          {
+            "nom": "CommentSection",
+            "description": "Affiche la liste des commentaires d'une tâche et un formulaire pour en ajouter un nouveau. Utilise `useApi` pour les appels API.",
+            "props": [
+              "taskId"
+            ]
+          },
+          {
+            "nom": "HistoryTimeline",
+            "description": "Affiche l'historique des modifications d'une tâche sous forme de timeline (ex: 'John a changé le statut de TODO à IN_PROGRESS').",
+            "props": [
+              "history"
+            ]
+          },
+          {
+            "nom": "AuthProvider",
+            "description": "Contexte React pour gérer l'état d'authentification (JWT, utilisateur connecté). Fournit des méthodes pour login/logout/refresh. Utilise `useAuth` dans les composants enfants.",
+            "fonctions": [
+              "login(email, password)",
+              "logout()",
+              "refreshToken()",
+              "getCurrentUser()"
+            ]
+          }
+        ],
+        "pages_à_créer": [
+          {
+            "nom": "DashboardPage",
+            "description": "Page principale après connexion. Contient un `TaskList` avec filtres et un bouton 'Nouvelle tâche' ouvrant un modal avec `TaskForm`.",
+            "route": "/"
+          },
+          {
+            "nom": "TaskDetailPage",
+            "description": "Page de détail d'une tâche. Contient `TaskDetail`, `CommentSection` et `HistoryTimeline`.",
+            "route": "/tasks/:id"
+          },
+          {
+            "nom": "LoginPage",
+            "description": "Page de connexion avec `LoginForm`. Redirige vers le dashboard après succès.",
+            "route": "/login"
+          },
+          {
+            "nom": "RegisterPage",
+            "description": "Page d'inscription avec `RegisterForm`. Redirige vers le login après succès.",
+            "route": "/register"
+          }
+        ],
+        "routing": "Utiliser React Router 6 avec les routes suivantes : `/` (Dashboard), `/tasks/:id` (TaskDetail), `/login`, `/register`. Protéger les routes avec un `PrivateRoute` qui vérifie la présence du JWT dans `AuthContext`.",
+        "gestion_état": {
+          "auth": "Géré via `AuthContext` (JWT, utilisateur connecté).",
+          "tâches": "Géré via `useTasks` hook (récupération, filtrage, cache local).",
+          "commentaires/historique": "Récupérés via `useApi` dans les composants concernés."
+        },
+        "styling": "Utiliser TailwindCSS pour le styling. Créer des composants UI réutilisables (Button, Input, Select, Modal) dans `src/components/ui/`.",
+        "appels_api": "Créer une instance axios (`apiClient.ts`) configurée avec le JWT dans l'en-tête `Authorization`. Exemple : `apiClient.get('/tasks/')`. Gérer les erreurs (401 → rediriger vers login, 403 → afficher un message)."
+      }
+    }
+  },
+  "constraints": [
+    "Compatibilité SQLite (dev) et PostgreSQL (prod) pour la base de données",
+    "Documentation OpenAPI automatique via FastAPI",
+    "Conteneurisation obligatoire avec Docker + Docker Compose",
+    "Pipeline CI/CD sur GitHub Actions avec tests automatisés",
+    "Responsive design pour le frontend (mobile/desktop)"
+  ],
+  "estimated_files": {
+    "database": 4,
+    "backend": 12,
+    "frontend": 20
+  }
+}

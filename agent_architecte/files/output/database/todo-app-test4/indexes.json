@@ -1,0 +1,78 @@
+{
+  "indexes": [
+    {
+      "name": "idx_user_email",
+      "table": "User",
+      "columns": [
+        "email"
+      ],
+      "reason": "Optimise les recherches et vérifications d'unicité sur l'email (déjà UNIQUE mais l'index accélère les requêtes)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_user_email ON User(email)"
+    },
+    {
+      "name": "idx_task_user_id",
+      "table": "Task",
+      "columns": [
+        "user_id"
+      ],
+      "reason": "Optimise les requêtes filtrant par user_id (ex: liste des tâches d'un utilisateur)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_user_id ON Task(user_id)"
+    },
+    {
+      "name": "idx_task_status",
+      "table": "Task",
+      "columns": [
+        "status"
+      ],
+      "reason": "Optimise les requêtes filtrant par status (ex: tâches en cours, terminées)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_status ON Task(status)"
+    },
+    {
+      "name": "idx_task_priority",
+      "table": "Task",
+      "columns": [
+        "priority"
+      ],
+      "reason": "Optimise les requêtes filtrant par priorité (ex: tâches urgentes)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_priority ON Task(priority)"
+    },
+    {
+      "name": "idx_task_due_date",
+      "table": "Task",
+      "columns": [
+        "due_date"
+      ],
+      "reason": "Optimise les requêtes filtrant par date d'échéance (ex: tâches à faire aujourd'hui)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_due_date ON Task(due_date)"
+    },
+    {
+      "name": "idx_task_deleted_at",
+      "table": "Task",
+      "columns": [
+        "deleted_at"
+      ],
+      "reason": "Optimise les requêtes excluant les tâches supprimées (soft delete)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_deleted_at ON Task(deleted_at)"
+    },
+    {
+      "name": "idx_task_user_id_status",
+      "table": "Task",
+      "columns": [
+        "user_id",
+        "status"
+      ],
+      "reason": "Optimise les requêtes combinant user_id et status (ex: tâches en cours d'un utilisateur)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_user_id_status ON Task(user_id, status)"
+    },
+    {
+      "name": "idx_task_user_id_priority",
+      "table": "Task",
+      "columns": [
+        "user_id",
+        "priority"
+      ],
+      "reason": "Optimise les requêtes combinant user_id et priorité (ex: tâches urgentes d'un utilisateur)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_user_id_priority ON Task(user_id, priority)"
+    }
+  ]
+}

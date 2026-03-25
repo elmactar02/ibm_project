@@ -1,0 +1,87 @@
+{
+  "indexes": [
+    {
+      "name": "idx_task_user_id",
+      "table": "task",
+      "columns": [
+        "user_id"
+      ],
+      "reason": "Optimise les requêtes filtrant ou joignant sur user_id (ex: liste des tâches d'un utilisateur)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_user_id ON task(user_id)"
+    },
+    {
+      "name": "idx_task_status",
+      "table": "task",
+      "columns": [
+        "status"
+      ],
+      "reason": "Optimise les requêtes filtrant par status (ex: tâches en cours, terminées)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_status ON task(status)"
+    },
+    {
+      "name": "idx_task_priority",
+      "table": "task",
+      "columns": [
+        "priority"
+      ],
+      "reason": "Optimise les requêtes filtrant par priorité (ex: tâches urgentes)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_priority ON task(priority)"
+    },
+    {
+      "name": "idx_task_created_at",
+      "table": "task",
+      "columns": [
+        "created_at"
+      ],
+      "reason": "Optimise les requêtes triant ou filtrant par date de création (ex: tâches récentes)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_created_at ON task(created_at)"
+    },
+    {
+      "name": "idx_task_updated_at",
+      "table": "task",
+      "columns": [
+        "updated_at"
+      ],
+      "reason": "Optimise les requêtes triant ou filtrant par date de mise à jour (ex: tâches modifiées récemment)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_updated_at ON task(updated_at)"
+    },
+    {
+      "name": "idx_task_deleted_at",
+      "table": "task",
+      "columns": [
+        "deleted_at"
+      ],
+      "reason": "Optimise les requêtes filtrant les tâches supprimées (soft delete)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_deleted_at ON task(deleted_at)"
+    },
+    {
+      "name": "idx_user_deleted_at",
+      "table": "user",
+      "columns": [
+        "deleted_at"
+      ],
+      "reason": "Optimise les requêtes filtrant les utilisateurs supprimés (soft delete)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_user_deleted_at ON user(deleted_at)"
+    },
+    {
+      "name": "idx_task_user_id_status",
+      "table": "task",
+      "columns": [
+        "user_id",
+        "status"
+      ],
+      "reason": "Optimise les requêtes combinant user_id et status (ex: tâches en cours d'un utilisateur)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_user_id_status ON task(user_id, status)"
+    },
+    {
+      "name": "idx_task_user_id_priority",
+      "table": "task",
+      "columns": [
+        "user_id",
+        "priority"
+      ],
+      "reason": "Optimise les requêtes combinant user_id et priorité (ex: tâches urgentes d'un utilisateur)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_user_id_priority ON task(user_id, priority)"
+    }
+  ]
+}

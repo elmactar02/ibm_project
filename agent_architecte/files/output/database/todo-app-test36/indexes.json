@@ -1,0 +1,60 @@
+{
+  "indexes": [
+    {
+      "name": "idx_user_email",
+      "table": "user",
+      "columns": [
+        "email"
+      ],
+      "reason": "Optimise les recherches par email (connexion/authentification) et renforce l'unicité déjà définie dans le schéma",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_user_email ON user(email)"
+    },
+    {
+      "name": "idx_task_user_id",
+      "table": "task",
+      "columns": [
+        "user_id"
+      ],
+      "reason": "Optimise les requêtes fréquentes pour lister les tâches d'un utilisateur (filtre par user_id)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_user_id ON task(user_id)"
+    },
+    {
+      "name": "idx_task_status_user_id",
+      "table": "task",
+      "columns": [
+        "status",
+        "user_id"
+      ],
+      "reason": "Optimise les requêtes filtrant par statut ET utilisateur (ex: 'mes tâches en cours')",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_status_user_id ON task(status, user_id)"
+    },
+    {
+      "name": "idx_task_priority_user_id",
+      "table": "task",
+      "columns": [
+        "priority",
+        "user_id"
+      ],
+      "reason": "Optimise les requêtes filtrant par priorité ET utilisateur (ex: 'mes tâches urgentes')",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_priority_user_id ON task(priority, user_id)"
+    },
+    {
+      "name": "idx_task_deleted_at",
+      "table": "task",
+      "columns": [
+        "deleted_at"
+      ],
+      "reason": "Optimise les requêtes excluant les tâches supprimées (soft delete) avec WHERE deleted_at IS NULL",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_task_deleted_at ON task(deleted_at)"
+    },
+    {
+      "name": "idx_user_is_active",
+      "table": "user",
+      "columns": [
+        "is_active"
+      ],
+      "reason": "Optimise les requêtes filtrant les utilisateurs actifs/inactifs (ex: authentification, listings)",
+      "sql": "CREATE INDEX IF NOT EXISTS idx_user_is_active ON user(is_active)"
+    }
+  ]
+}

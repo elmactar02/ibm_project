@@ -1,0 +1,16 @@
+{
+  "seeders": [
+    {
+      "table": "users",
+      "description": "5 utilisateurs avec emails réalistes et mots de passe hashés de test",
+      "sql": "INSERT INTO users (email, hashed_password, created_at, deleted_at) VALUES ('jean.dupont@entreprise.fr', 'hashed_password_test', '2024-01-10 08:30:00', NULL), ('marie.martin@societe.com', 'hashed_password_test', '2024-01-11 09:15:00', NULL), ('pierre.lafonte@startup.io', 'hashed_password_test', '2024-01-12 14:20:00', NULL), ('claire.leblanc@corporate.net', 'hashed_password_test', '2024-01-13 16:45:00', NULL), ('lucas.robert@tech-solutions.fr', 'hashed_password_test', '2024-01-14 11:00:00', NULL)",
+      "count": 5
+    },
+    {
+      "table": "tasks",
+      "description": "5 tâches variées avec statuts et priorités réalistes",
+      "sql": "INSERT INTO tasks (title, description, status, priority, created_at, updated_at, user_id, deleted_at) VALUES ('Implémenter l''authentification JWT', 'Créer le middleware d''authentification avec vérification des tokens', 'IN_PROGRESS', 'HIGH', '2024-01-15 09:00:00', '2024-01-16 14:30:00', 1, NULL), ('Configurer le pipeline CI/CD', 'Ajouter les étapes de build, test et déploiement sur GitHub Actions', 'TODO', 'MEDIUM', '2024-01-15 10:15:00', '2024-01-15 10:15:00', 2, NULL), ('Optimiser les requêtes SQL', 'Réduire le temps d''exécution des requêtes les plus lentes', 'DONE', 'HIGH', '2024-01-10 11:30:00', '2024-01-14 16:20:00', 3, NULL), ('Créer les filtres avancés', 'Permettre le filtrage par statut, priorité et date', 'IN_PROGRESS', 'MEDIUM', '2024-01-16 08:45:00', '2024-01-17 10:00:00', 1, NULL), ('Documenter l''API', 'Rédiger la documentation Swagger pour toutes les endpoints', 'TODO', 'LOW', '2024-01-17 13:20:00', '2024-01-17 13:20:00', 4, NULL)",
+      "count": 5
+    }
+  ]
+}

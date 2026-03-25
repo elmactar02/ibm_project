@@ -1,0 +1,16 @@
+{
+  "seeders": [
+    {
+      "table": "users",
+      "description": "5 utilisateurs avec emails réalistes et mots de passe hashés de test",
+      "sql": "INSERT INTO users (email, hashed_password, created_at, deleted_at) VALUES ('jean.dupont@entreprise.fr', 'hashed_password_test', '2024-01-10 08:30:00', NULL), ('marie.martin@societe.com', 'hashed_password_test', '2024-01-11 09:15:00', NULL), ('pierre.lafonte@startup.io', 'hashed_password_test', '2024-01-12 14:20:00', NULL), ('claire.leblanc@corporate.net', 'hashed_password_test', '2024-01-13 16:45:00', NULL), ('lucas.robert@tech-solutions.fr', 'hashed_password_test', '2024-01-14 11:00:00', NULL)",
+      "count": 5
+    },
+    {
+      "table": "tasks",
+      "description": "5 tâches variées avec statuts et priorités réalistes",
+      "sql": "INSERT INTO tasks (title, description, status, priority, created_at, updated_at, user_id, deleted_at) VALUES ('Finaliser le rapport trimestriel', 'Préparer les slides et données financières pour la réunion du 20/01', 'IN_PROGRESS', 'HIGH', '2024-01-15 09:00:00', '2024-01-16 14:30:00', 1, NULL), ('Corriger bug API authentification', 'Problème de refresh token sur l''endpoint /auth/refresh', 'TODO', 'HIGH', '2024-01-15 10:15:00', '2024-01-15 10:15:00', 2, NULL), ('Planifier sprint 3', 'Organiser le backlog et prioriser les user stories', 'TODO', 'MEDIUM', '2024-01-15 11:30:00', '2024-01-15 11:30:00', 3, NULL), ('Mettre à jour documentation CI/CD', 'Ajouter les étapes de déploiement Kubernetes', 'DONE', 'LOW', '2024-01-10 15:00:00', '2024-01-14 17:20:00', 1, NULL), ('Revoir design mobile', 'Adapter les boutons du formulaire de connexion', 'IN_PROGRESS', 'MEDIUM', '2024-01-14 08:45:00', '2024-01-16 09:10:00', 4, NULL)",
+      "count": 5
+    }
+  ]
+}

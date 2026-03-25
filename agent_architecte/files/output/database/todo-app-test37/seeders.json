@@ -1,0 +1,16 @@
+{
+  "seeders": [
+    {
+      "table": "user",
+      "description": "5 utilisateurs avec emails réalistes et mots de passe hashés pour tests",
+      "sql": "INSERT INTO user (email, hashed_password, created_at, deleted_at) VALUES ('jean.dupont@entreprise.fr', 'hashed_password_test', '2023-11-10 08:30:00', NULL), ('marie.martin@societe.com', 'hashed_password_test', '2023-11-12 14:15:00', NULL), ('pierre.lafonte@startup.io', 'hashed_password_test', '2023-11-15 09:45:00', NULL), ('claire.leclerc@corporate.net', 'hashed_password_test', '2023-11-20 16:20:00', NULL), ('thomas.bernard@tech-solutions.fr', 'hashed_password_test', '2023-12-01 11:00:00', NULL)",
+      "count": 5
+    },
+    {
+      "table": "task",
+      "description": "5 tâches variées avec statuts et priorités réalistes pour 3 utilisateurs différents",
+      "sql": "INSERT INTO task (title, description, status, priority, created_at, updated_at, user_id, deleted_at) VALUES ('Finaliser le rapport trimestriel', 'Préparer les slides et données financières pour la réunion du 25/01', 'IN_PROGRESS', 'HIGH', '2024-01-10 09:15:00', '2024-01-18 14:30:00', 1, NULL), ('Corriger bug API authentification', 'Problème de refresh token sur l''endpoint /auth/refresh', 'TODO', 'HIGH', '2024-01-12 11:20:00', 'datetime(''now'')', 2, NULL), ('Mettre à jour la documentation technique', 'Ajouter les nouveaux endpoints et exemples d''utilisation', 'TODO', 'MEDIUM', '2024-01-14 16:45:00', 'datetime(''now'')', 1, NULL), ('Planifier la migration CI/CD', 'Étudier les options pour migrer de Jenkins vers GitHub Actions', 'DONE', 'LOW', '2024-01-05 10:00:00', '2024-01-15 09:30:00', 3, NULL), ('Revoir les tests unitaires', 'Vérifier la couverture des tests pour le module UserService', 'IN_PROGRESS', 'MEDIUM', '2024-01-16 13:25:00', '2024-01-17 17:40:00', 2, NULL)",
+      "count": 5
+    }
+  ]
+}
